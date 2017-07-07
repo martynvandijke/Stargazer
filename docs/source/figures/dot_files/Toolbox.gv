@@ -1,0 +1,13 @@
+digraph G {
+  "Toolbox";
+  "Tools/Bus";
+  "Tools/Consumer";
+  "Tools/Eraser";
+  "Tools/Pen";
+  "Tools/PowerPlant";
+  "Toolbox" -> "Tools/Bus";
+  "Toolbox" -> "Tools/Consumer";
+  "Toolbox" -> "Tools/Eraser";
+  "Toolbox" -> "Tools/Pen";
+  "Toolbox" -> "Tools/PowerPlant";
+}

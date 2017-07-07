@@ -1,0 +1,8 @@
+component,list_name,description
+Network,networks,"Container for all components and functions which act upon the whole network."
+Bus,buses,"Electrically fundamental node where x-port objects attach."
+Line,lines,"Lines include distribution and transmission lines, overhead lines and cables."
+LineType,line_types,"Standard line types with per length values for impedances."
+Link,links,"Link between two buses with controllable active power - can be used for a transport power flow model OR as a simplified version of point-to-point DC connection OR as a lossy energy converter. NB: for a lossless bi-directional HVDC or transport link, set p_min_pu = -1 and efficiency = 1. NB: It is assumed that the links neither produce nor consume reactive power."
+Load,loads,"PQ power consumer."
+Generator,generators,"Power generator."

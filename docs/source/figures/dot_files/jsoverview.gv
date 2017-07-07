@@ -1,0 +1,11 @@
+digraph G {
+  "Solver";
+  "Store";
+  "Tools/Bus";
+  "Tools/Consumer";
+  "Tools/Eraser";
+  "Tools/Grid";
+  "Tools/Pen";
+  "Tools/PowerPlant";
+  "index";
+}

@@ -1,0 +1,5 @@
+digraph G {
+  "Tools/Grid";
+  "Workbench";
+  "Workbench" -> "Tools/Grid";
+}

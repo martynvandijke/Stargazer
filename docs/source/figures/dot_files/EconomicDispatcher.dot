@@ -1,0 +1,97 @@
+digraph G {
+concentrate = true;
+			subgraph legend{
+			rank = min;
+			label = "legend";
+			Legend [shape=none, margin=0, label = <
+				<table cellspacing="0" cellpadding="0" border="1"><tr><td>Code2flow Legend</td></tr><tr><td>
+				<table cellspacing="0">
+				<tr><td>Regular function</td><td width="50px"></td></tr>
+				<tr><td>Trunk function (nothing calls this)</td><td bgcolor='coral'></td></tr>
+				<tr><td>Leaf function (this calls nothing else)</td><td bgcolor='green'></td></tr>
+				<tr><td>Function call which returns no value</td><td>&#8594;</td></tr>
+				<tr><td>Function call returns some value</td><td><font color='blue'>&#8594;</font></td></tr>
+				</table></td></tr></table>
+				>];}node1 [splines=ortho shape = "rect" style = "rounded" label = "809: EconomicDispatcher.Dispatch" ];
+node34 [splines=ortho shape = "rect" style = "rounded,filled" fillcolor = "coral" label = "0: EconomicDispatcher.(EconomicDispatcher module frame (runs on import))" ];
+node3 [splines=ortho shape = "rect" style = "rounded,filled" fillcolor = "green" label = "43: Output.zipdir" ];
+node4 [splines=ortho shape = "rect" style = "rounded" label = "58: Output.NetworkExport" ];
+node6 [splines=ortho shape = "rect" style = "rounded,filled" fillcolor = "coral" label = "151: Simple.__init__" ];
+node7 [splines=ortho shape = "rect" style = "rounded" label = "165: Simple.Main" ];
+node8 [splines=ortho shape = "rect" style = "rounded,filled" fillcolor = "green" label = "182: Simple.Solver" ];
+node9 [splines=ortho shape = "rect" style = "rounded,filled" fillcolor = "green" label = "190: Simple.Printer" ];
+node10 [splines=ortho shape = "rect" style = "rounded,filled" fillcolor = "green" label = "202: Simple.Load" ];
+node11 [splines=ortho shape = "rect" style = "rounded" label = "214: Simple.Model" ];
+node12 [splines=ortho shape = "rect" style = "rounded,filled" fillcolor = "coral" label = "242: Simple.CostRule" ];
+node13 [splines=ortho shape = "rect" style = "rounded,filled" fillcolor = "coral" label = "253: Simple.UnitRule" ];
+node14 [splines=ortho shape = "rect" style = "rounded,filled" fillcolor = "coral" label = "266: Simple.BalanceRule" ];
+node16 [splines=ortho shape = "rect" style = "rounded,filled" fillcolor = "coral" label = "286: Network.__init" ];
+node17 [splines=ortho shape = "rect" style = "rounded,filled" fillcolor = "coral" label = "302: Network.Main" ];
+node18 [splines=ortho shape = "rect" style = "rounded,filled" fillcolor = "green" label = "353: Network.Loader" ];
+node19 [splines=ortho shape = "rect" style = "rounded,filled" fillcolor = "green" label = "360: Network.LoadAll" ];
+node20 [splines=ortho shape = "rect" style = "rounded,filled" fillcolor = "coral" label = "496: Network.LoadFormatter" ];
+node21 [splines=ortho shape = "rect" style = "rounded,filled" fillcolor = "green" label = "514: Network.BussesAdder" ];
+node22 [splines=ortho shape = "rect" style = "rounded,filled" fillcolor = "green" label = "540: Network.Formatter" ];
+node23 [splines=ortho shape = "rect" style = "rounded" label = "605: Network.ElectricLinesAdder" ];
+node24 [splines=ortho shape = "rect" style = "rounded,filled" fillcolor = "green" label = "649: Network.GeneratorAdder" ];
+node25 [splines=ortho shape = "rect" style = "rounded,filled" fillcolor = "green" label = "677: Network.LoadAdder" ];
+node26 [splines=ortho shape = "rect" style = "rounded,filled" fillcolor = "green" label = "696: Network.Printer" ];
+node27 [splines=ortho shape = "rect" style = "rounded,filled" fillcolor = "green" label = "711: Network.UnitRule" ];
+node28 [splines=ortho shape = "rect" style = "rounded,filled" fillcolor = "green" label = "755: Network.RampUpRule" ];
+node29 [splines=ortho shape = "rect" style = "rounded,filled" fillcolor = "green" label = "757: Network.RampDownRule" ];
+node30 [splines=ortho shape = "rect" style = "rounded" label = "758: Network.constrains" ];
+node31 [splines=ortho shape = "rect" style = "rounded" label = "777: Network.lopf" ];
+node33 [splines=ortho shape = "rect" style = "rounded,filled" fillcolor = "coral" label = "809: Stochastic.Main" ];
+node1 -> node7 [color="blue" penwidth="2"];
+node34 -> node1;
+node4 -> node3;
+node7 -> node8 [color="blue" penwidth="2"];
+node7 -> node9;
+node7 -> node11 [color="blue" penwidth="2"];
+node11 -> node10 [color="blue" penwidth="2"];
+node17 -> node18 [color="blue" penwidth="2"];
+node17 -> node19 [color="blue" penwidth="2"];
+node17 -> node21;
+node17 -> node23;
+node17 -> node24;
+node17 -> node25;
+node17 -> node26;
+node17 -> node31;
+node23 -> node22 [color="blue" penwidth="2"];
+node30 -> node27;
+node30 -> node28;
+node30 -> node29;
+node31 -> node4;
+node31 -> node30;
+subgraph clusterEconomicDispatcher0{
+node1 node34 node3 node4 node6 node7 node8 node9 node10 node11 node12 node13 node14 node16 node17 node18 node19 node20 node21 node22 node23 node24 node25 node26 node27 node28 node29 node30 node31 node33 ;
+label="EconomicDispatcher";
+style=filled;
+color=black;
+graph[style=dotted];
+subgraph clusterOutput2{
+node3 node4 ;
+label="Output";
+style=filled;
+color=black;
+graph[style=dotted];
+}subgraph clusterSimple5{
+node6 node7 node8 node9 node10 node11 node12 node13 node14 ;
+label="Simple";
+style=filled;
+color=black;
+graph[style=dotted];
+}subgraph clusterNetwork15{
+node16 node17 node18 node19 node20 node21 node22 node23 node24 node25 node26 node27 node28 node29 node30 node31 ;
+label="Network";
+style=filled;
+color=black;
+graph[style=dotted];
+}subgraph clusterStochastic32{
+node33 ;
+label="Stochastic";
+style=filled;
+color=black;
+graph[style=dotted];
+}};
+}

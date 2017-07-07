@@ -1,0 +1,33 @@
+digraph {
+
+
+   browser;
+
+
+  subgraph cluster_4 {
+    label="Python";
+    request -> dispatcher;
+    dispatcher -> simple;
+    simple -> render;
+    simple -> request;
+    dispatcher -> network;
+    network -> render;
+    network -> request;
+    subgraph cluster_1 {
+    label="Django Web Server";
+    render;
+    request;
+  	}
+  }
+    browser -> request;
+    request -> browser;
+    render -> browser;
+
+
+  subgraph cluster_5 {
+    label="Node.Js";
+    asset -> render;
+
+  }
+
+}

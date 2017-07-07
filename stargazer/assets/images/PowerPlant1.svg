@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://web.resource.org/cc/"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   id="svg1889"
+   sodipodi:version="0.32"
+   inkscape:version="0.44"
+   width="132"
+   height="78"
+   version="1.0"
+   sodipodi:docbase="D:\Documents and Settings\Ji     N  dvorn  k\Plocha"
+   sodipodi:docname="znacka Generatoru 3.svg">
+  <metadata
+     id="metadata1894">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <defs
+     id="defs1892" />
+  <sodipodi:namedview
+     inkscape:window-height="742"
+     inkscape:window-width="1024"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0.0"
+     guidetolerance="10.0"
+     gridtolerance="10.0"
+     objecttolerance="10.0"
+     borderopacity="1.0"
+     bordercolor="#666666"
+     pagecolor="#ffffff"
+     id="base"
+     inkscape:zoom="1"
+     inkscape:cx="58.449465"
+     inkscape:cy="36.421867"
+     inkscape:window-x="-4"
+     inkscape:window-y="-4"
+     inkscape:current-layer="svg1889" />
+  <path
+     style="fill:white;fill-opacity:1;stroke:#050505;stroke-width:1.64070892;stroke-opacity:1"
+     d="M 95.655038,38.724156 C 95.655038,54.370407 82.95663,67.068815 67.310379,67.068815 C 51.664126,67.068815 38.965718,54.370407 38.965718,38.724156 C 38.965718,23.077903 51.664126,10.379496 67.310379,10.379496 C 82.95663,10.379496 95.655038,23.077903 95.655038,38.724156 z "
+     id="path1906" />
+  <path
+     style="font-size:26.12888718px;font-style:normal;font-weight:normal;fill:black;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
+     d="M 67.028032,42.163564 L 67.028032,37.943308 L 82.26512,37.91877 L 82.26512,51.266557 C 79.925951,53.131324 77.513212,54.533986 75.026889,55.474544 C 72.540511,56.415105 69.988732,56.885386 67.371543,56.885386 C 63.838287,56.885386 60.628115,56.128848 57.741016,54.615771 C 54.853896,53.102699 52.674249,50.914875 51.202074,48.052293 C 49.729887,45.189728 48.993797,41.991824 48.993801,38.458572 C 48.993797,34.958069 49.725799,31.690647 51.189806,28.656292 C 52.653802,25.621991 54.759839,23.368736 57.507921,21.896521 C 60.25598,20.424375 63.421169,19.688284 67.003497,19.688248 C 69.604329,19.688284 71.955729,20.109491 74.057704,20.951869 C 76.159624,21.794319 77.807648,22.967975 79.001782,24.47284 C 80.195852,25.977767 81.103698,27.940675 81.72532,30.361569 L 77.431455,31.539314 C 76.891623,29.707293 76.220963,28.267827 75.419471,27.220913 C 74.617922,26.174058 73.472893,25.335733 71.98438,24.705935 C 70.495816,24.0762 68.843702,23.761316 67.028032,23.761286 C 64.852457,23.761316 62.971336,24.092559 61.384668,24.755007 C 59.79797,25.41752 58.517989,26.28856 57.544725,27.368132 C 56.571439,28.44776 55.814902,29.633683 55.275112,30.925905 C 54.359079,33.150559 53.901067,35.563299 53.901075,38.164135 C 53.901067,41.370236 54.453134,44.052876 55.557279,46.212064 C 56.661406,48.371273 58.268536,49.974314 60.378677,51.021192 C 62.488787,52.068082 64.729774,52.591524 67.101642,52.591521 C 69.162675,52.591524 71.174655,52.194854 73.13759,51.401506 C 75.10047,50.608171 76.589009,49.761667 77.603209,48.861993 L 77.603209,42.163564 L 67.028032,42.163564 z "
+     id="text5462" />
+</svg>

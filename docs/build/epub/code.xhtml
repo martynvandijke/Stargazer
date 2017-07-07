@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Code Documentation</title>
+    
+    <link rel="stylesheet" href="_static/epub.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" /> 
+  </head>
+  <body role="document">
+
+    <div class="document">
+      <div class="documentwrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-EconomicDispatcher">
+<span id="code-documentation"></span><h1>Code Documentation</h1>
+<p>Economic Dispatcher</p>
+<p>Purpose of this module is to dispatch between the different types of economic dispatchers and calculated the minimum
+objective function</p>
+<dl class="function">
+<dt id="EconomicDispatcher.Dispatch">
+<code class="descclassname">EconomicDispatcher.</code><code class="descname">Dispatch</code><span class="sig-paren">(</span><em>model</em>, <em>*data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/EconomicDispatcher.xhtml#Dispatch"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Args:</p>
+<p>Returns: json file with the solutions of the model</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="EconomicDispatcher.Network">
+<em class="property">class </em><code class="descclassname">EconomicDispatcher.</code><code class="descname">Network</code><a class="reference internal" href="_modules/EconomicDispatcher.xhtml#Network"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a><span class="link-target"> [https://docs.python.org/2/library/functions.html#object]</span></p>
+<p>Network constrained optimization problem</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>file</strong> &#8211; </li>
+<li><strong>solver</strong> &#8211; </li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Json file with simple marketclearing</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">solotion</p>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="EconomicDispatcher.Network.BussesAdder">
+<code class="descname">BussesAdder</code><span class="sig-paren">(</span><em>network</em>, <em>Buss</em>, <em>BussVnom</em>, <em>BussVmax</em>, <em>BussVmin</em>, <em>BussVset</em>, <em>BussType</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/EconomicDispatcher.xhtml#Network.BussesAdder"><span class="viewcode-link">[source]</span></a></dt>
+<dd><blockquote>
+<div>Add all the buses to the network component</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong></strong><strong>(</strong><strong></strong><strong>)</strong><strong></strong> (<em>BussType</em>) &#8211; Pandas dataframework from frontend</li>
+<li><strong></strong><strong>(</strong><strong></strong><strong>)</strong><strong></strong> &#8211; Pandas dataframework from frontend</li>
+<li><strong></strong><strong>(</strong><strong></strong><strong>)</strong><strong></strong> &#8211; Pandas dataframework from frontend</li>
+<li><strong></strong><strong>(</strong><strong></strong><strong>)</strong><strong></strong> &#8211; Pandas dataframework from frontend</li>
+<li><strong></strong><strong>(</strong><strong></strong><strong>)</strong><strong></strong> &#8211; Pandas dataframework from frontend</li>
+<li><strong></strong><strong>(</strong><strong></strong><strong>)</strong><strong></strong> &#8211; Pandas dataframework from frontend</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Returns:</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="EconomicDispatcher.Network.ElectricLinesAdder">
+<code class="descname">ElectricLinesAdder</code><span class="sig-paren">(</span><em>network</em>, <em>ElectricLines</em>, <em>ElectricLinesR</em>, <em>ElectricLinesX</em>, <em>ElectricLinesCcap</em>, <em>ElectricLinesL</em>, <em>ElectricLinesPhaseShift</em>, <em>ElectricLinesAngMax</em>, <em>ElectricLinesAngMin</em>, <em>ElectricLinesLength</em>, <em>ElectricLinesConnection</em>, <em>ElectricLinesPmax</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/EconomicDispatcher.xhtml#Network.ElectricLinesAdder"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Add the lines between buses to the network component</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong></strong><strong>(</strong><strong></strong><strong>)</strong><strong></strong> (<em>ElectricLinesPmax</em>) &#8211; pypsa network component</li>
+<li><strong></strong><strong>(</strong><strong></strong><strong>)</strong><strong></strong> &#8211; Pandas dataframework from frontend</li>
+<li><strong></strong><strong>(</strong><strong></strong><strong>)</strong><strong></strong> &#8211; Pandas dataframework from frontend</li>
+<li><strong></strong><strong>(</strong><strong></strong><strong>)</strong><strong></strong> &#8211; Pandas dataframework from frontend</li>
+<li><strong></strong><strong>(</strong><strong></strong><strong>)</strong><strong></strong> &#8211; Pandas dataframework from frontend</li>
+<li><strong></strong><strong>(</strong><strong></strong><strong>)</strong><strong></strong> &#8211; Pandas dataframework from frontend</li>
+<li><strong></strong><strong>(</strong><strong></strong><strong>)</strong><strong></strong> &#8211; Pandas dataframework from frontend</li>
+<li><strong></strong><strong>(</strong><strong></strong><strong>)</strong><strong></strong> &#8211; Pandas dataframework from frontend</li>
+<li><strong></strong><strong>(</strong><strong></strong><strong>)</strong><strong></strong> &#8211; Pandas dataframework from frontend</li>
+<li><strong></strong><strong>(</strong><strong></strong><strong>)</strong><strong></strong> &#8211; Pandas dataframework from frontend</li>
+<li><strong></strong><strong>(</strong><strong></strong><strong>)</strong><strong></strong> &#8211; Pandas dataframework from frontend</li>
+<li><strong></strong><strong>(</strong><strong></strong><strong>)</strong><strong></strong> &#8211; Pandas dataframework from frontend</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Returns:</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="EconomicDispatcher.Network.GeneratorAdder">
+<code class="descname">GeneratorAdder</code><span class="sig-paren">(</span><em>network</em>, <em>Generators</em>, <em>GeneratorConnection</em>, <em>PnomOrdered</em>, <em>PminOrdered</em>, <em>PmaxOrdered</em>, <em>CostsOrdered</em>, <em>RampUp</em>, <em>RampDown</em>, <em>MaxDownTime</em>, <em>MinDownTime</em>, <em>Initstatus</em>, <em>StartUpCost</em>, <em>ShutdownCost</em>, <em>Effciency</em>, <em>CapCost</em>, <em>PsetPoint</em>, <em>QsetPoint</em>, <em>Time</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/EconomicDispatcher.xhtml#Network.GeneratorAdder"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Add the generators to the network component</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong></strong><strong>(</strong><strong></strong><strong>)</strong><strong></strong> (<em>QsetPoint</em>) &#8211; pypsa network component</li>
+<li><strong></strong><strong>(</strong><strong></strong><strong>)</strong><strong></strong> &#8211; Pandas dataframework from frontend</li>
+<li><strong></strong><strong>(</strong><strong></strong><strong>)</strong><strong></strong> &#8211; Pandas dataframework from frontend</li>
+<li><strong></strong><strong>(</strong><strong></strong><strong>)</strong><strong></strong> &#8211; Pandas dataframework from frontend</li>
+<li><strong></strong><strong>(</strong><strong></strong><strong>)</strong><strong></strong> &#8211; Pandas dataframework from frontend</li>
+<li><strong></strong><strong>(</strong><strong></strong><strong>)</strong><strong></strong> &#8211; Pandas dataframework from frontend</li>
+<li><strong></strong><strong>(</strong><strong></strong><strong>)</strong><strong></strong> &#8211; Pandas dataframework from frontend</li>
+<li><strong></strong><strong>(</strong><strong></strong><strong>)</strong><strong></strong> &#8211; Pandas dataframework from frontend</li>
+<li><strong></strong><strong>(</strong><strong></strong><strong>)</strong><strong></strong> &#8211; Pandas dataframework from frontend</li>
+<li><strong></strong><strong>(</strong><strong></strong><strong>)</strong><strong></strong> &#8211; Pandas dataframework from frontend</li>
+<li><strong></strong><strong>(</strong><strong></strong><strong>)</strong><strong></strong> &#8211; Pandas dataframework from frontend</li>
+<li><strong></strong><strong>(</strong><strong></strong><strong>)</strong><strong></strong> &#8211; Pandas dataframework from frontend</li>
+<li><strong></strong><strong>(</strong><strong></strong><strong>)</strong><strong></strong> &#8211; Pandas dataframework from frontend</li>
+<li><strong></strong><strong>(</strong><strong></strong><strong>)</strong><strong></strong> &#8211; Pandas dataframework from frontend</li>
+<li><strong></strong><strong>(</strong><strong></strong><strong>)</strong><strong></strong> &#8211; Pandas dataframework from frontend</li>
+<li><strong></strong><strong>(</strong><strong></strong><strong>)</strong><strong></strong> &#8211; Pandas dataframework from frontend</li>
+<li><strong></strong><strong>(</strong><strong></strong><strong>)</strong><strong></strong> &#8211; Pandas dataframework from frontend</li>
+<li><strong></strong><strong>(</strong><strong></strong><strong>)</strong><strong></strong> &#8211; Pandas dataframework from frontend</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Returns:</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="EconomicDispatcher.Network.LoadAdder">
+<code class="descname">LoadAdder</code><span class="sig-paren">(</span><em>network</em>, <em>LoadName</em>, <em>Loads</em>, <em>LoadQ</em>, <em>LoadBus</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/EconomicDispatcher.xhtml#Network.LoadAdder"><span class="viewcode-link">[source]</span></a></dt>
+<dd><blockquote>
+<div>Add loads to the network</div></blockquote>
+<p>ToDo : Qload</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>LoadName</strong> &#8211; List of Load names</li>
+<li><strong>Loads</strong> &#8211; List of loads that need to be edited</li>
+<li><strong>LoadBus</strong> &#8211; List of the busses where the load is connected to</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="EconomicDispatcher.Network.Main">
+<code class="descname">Main</code><span class="sig-paren">(</span><em>model</em>, <em>ElectricLines</em>, <em>ElectricLinesR</em>, <em>ElectricLinesC</em>, <em>ElectricLinesX</em>, <em>Buss</em>, <em>BussVnom</em>, <em>BussType</em>, <em>BussVset</em>, <em>BussVmax</em>, <em>BussVmin</em>, <em>BussConnection</em>, <em>ElectricLinesCcap</em>, <em>ElectricLinesL</em>, <em>ElectricLinesPhaseShift</em>, <em>ElectricLinesAngMax</em>, <em>ElectricLinesAngMin</em>, <em>ElectricLinesLength</em>, <em>ElectricLinesConnection</em>, <em>ElectricLinesPmax</em>, <em>Generators</em>, <em>CostsOrdered</em>, <em>PnomOrdered</em>, <em>RampUp</em>, <em>RampDown</em>, <em>Effciency</em>, <em>MinDownTime</em>, <em>MaxDownTime</em>, <em>PminOrdered</em>, <em>GeneratorConnection</em>, <em>Time</em>, <em>PowerBlocks</em>, <em>PmaxOrdered</em>, <em>StartUpCost</em>, <em>ShutdownCost</em>, <em>Initstatus</em>, <em>CapCost</em>, <em>PsetPoint</em>, <em>QsetPoint</em>, <em>Loads</em>, <em>LoadP</em>, <em>LoadQ</em>, <em>LoadTime</em>, <em>LoadConnection</em>, <em>options</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/EconomicDispatcher.xhtml#Network.Main"><span class="viewcode-link">[source]</span></a></dt>
+<dd><blockquote>
+<div>Main network function that calls necessary network functions</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong></strong><strong>(</strong><strong></strong><strong>)</strong><strong></strong> (<em>options</em>) &#8211; Pandas Data Framework from the frontend</li>
+<li><strong></strong><strong>(</strong><strong></strong><strong>)</strong><strong></strong> &#8211; Pandas Data Framework from the frontend</li>
+<li><strong></strong><strong>(</strong><strong></strong><strong>)</strong><strong></strong> &#8211; Pandas Data Framework from the frontend</li>
+<li><strong></strong><strong>(</strong><strong></strong><strong>)</strong><strong></strong> &#8211; Pandas Data Framework from the frontend</li>
+<li><strong></strong><strong>(</strong><strong></strong><strong>)</strong><strong></strong> &#8211; Pandas Data Framework from the frontend</li>
+<li><strong></strong><strong>(</strong><strong></strong><strong>)</strong><strong></strong> &#8211; Pandas Data Framework from the frontend</li>
+<li><strong></strong><strong>(</strong><strong></strong><strong>)</strong><strong></strong> &#8211; Pandas Data Framework from the frontend</li>
+<li><strong></strong><strong>(</strong><strong></strong><strong>)</strong><strong></strong> &#8211; Pandas Data Framework from the frontend</li>
+<li><strong></strong><strong>(</strong><strong></strong><strong>)</strong><strong></strong> &#8211; Pandas Data Framework from the frontend</li>
+<li><strong></strong><strong>(</strong><strong></strong><strong>)</strong><strong></strong> &#8211; Pandas Data Framework from the frontend</li>
+<li><strong></strong><strong>(</strong><strong></strong><strong>)</strong><strong></strong> &#8211; </li>
+<li><strong></strong><strong>(</strong><strong></strong><strong>)</strong><strong></strong> &#8211; Pandas Data Framework from the frontend</li>
+<li><strong></strong><strong>(</strong><strong></strong><strong>)</strong><strong></strong> &#8211; Pandas Data Framework from the frontend</li>
+<li><strong></strong><strong>(</strong><strong></strong><strong>)</strong><strong></strong> &#8211; Pandas Data Framework from the frontend</li>
+<li><strong></strong><strong>(</strong><strong></strong><strong>)</strong><strong></strong> &#8211; Pandas Data Framework from the frontend</li>
+<li><strong></strong><strong>(</strong><strong></strong><strong>)</strong><strong></strong> &#8211; Pandas Data Framework from the frontend</li>
+<li><strong></strong><strong>(</strong><strong></strong><strong>)</strong><strong></strong> &#8211; Pandas Data Framework from the frontend</li>
+<li><strong></strong><strong>(</strong><strong></strong><strong>)</strong><strong></strong> &#8211; Pandas Data Framework from the frontend</li>
+<li><strong></strong><strong>(</strong><strong></strong><strong>)</strong><strong></strong> &#8211; Pandas Data Framework from the frontend</li>
+<li><strong></strong><strong>(</strong><strong></strong><strong>)</strong><strong></strong> &#8211; Pandas Data Framework from the frontend</li>
+<li><strong></strong><strong>(</strong><strong></strong><strong>)</strong><strong></strong> &#8211; Pandas Data Framework from the frontend</li>
+<li><strong></strong><strong>(</strong><strong></strong><strong>)</strong><strong></strong> &#8211; Pandas Data Framework from the frontend</li>
+<li><strong></strong><strong>(</strong><strong></strong><strong>)</strong><strong></strong> &#8211; Pandas Data Framework from the frontend</li>
+<li><strong></strong><strong>(</strong><strong></strong><strong>)</strong><strong></strong> &#8211; Pandas Data Framework from the frontend</li>
+<li><strong></strong><strong>(</strong><strong></strong><strong>)</strong><strong></strong> &#8211; Pandas Data Framework from the frontend</li>
+<li><strong></strong><strong>(</strong><strong></strong><strong>)</strong><strong></strong> &#8211; Pandas Data Framework from the frontend</li>
+<li><strong></strong><strong>(</strong><strong></strong><strong>)</strong><strong></strong> &#8211; Pandas Data Framework from the frontend</li>
+<li><strong></strong><strong>(</strong><strong></strong><strong>)</strong><strong></strong> &#8211; Pandas Data Framework from the frontend</li>
+<li><strong></strong><strong>(</strong><strong></strong><strong>)</strong><strong></strong> &#8211; Pandas Data Framework from the frontend</li>
+<li><strong></strong><strong>(</strong><strong></strong><strong>)</strong><strong></strong> &#8211; Pandas Data Framework from the frontend</li>
+<li><strong></strong><strong>(</strong><strong></strong><strong>)</strong><strong></strong> &#8211; Pandas Data Framework from the frontend</li>
+<li><strong></strong><strong>(</strong><strong></strong><strong>)</strong><strong></strong> &#8211; Pandas Data Framework from the frontend</li>
+<li><strong></strong><strong>(</strong><strong></strong><strong>)</strong><strong></strong> &#8211; Pandas Data Framework from the frontend</li>
+<li><strong></strong><strong>(</strong><strong></strong><strong>)</strong><strong></strong> &#8211; Pandas Data Framework from the frontend</li>
+<li><strong></strong><strong>(</strong><strong></strong><strong>)</strong><strong></strong> &#8211; Pandas Data Framework from the frontend</li>
+<li><strong></strong><strong>(</strong><strong></strong><strong>)</strong><strong></strong> &#8211; Pandas Data Framework from the frontend</li>
+<li><strong></strong><strong>(</strong><strong></strong><strong>)</strong><strong></strong> &#8211; Pandas Data Framework from the frontend</li>
+<li><strong></strong><strong>(</strong><strong></strong><strong>)</strong><strong></strong> &#8211; Pandas Data Framework from the frontend</li>
+<li><strong></strong><strong>(</strong><strong></strong><strong>)</strong><strong></strong> &#8211; Pandas Data Framework from the frontend</li>
+<li><strong></strong><strong>(</strong><strong></strong><strong>)</strong><strong></strong> &#8211; Pandas Data Framework from the frontend</li>
+<li><strong></strong><strong>(</strong><strong></strong><strong>)</strong><strong></strong> &#8211; Pandas Data Framework from the frontend</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Returns:</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="EconomicDispatcher.Network.Printer">
+<code class="descname">Printer</code><span class="sig-paren">(</span><em>network</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/EconomicDispatcher.xhtml#Network.Printer"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Debugger that prints info</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>network</strong> &#8211; pypsa main network component</td>
+</tr>
+</tbody>
+</table>
+<p>Returns:</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="EconomicDispatcher.Network.lopf">
+<code class="descname">lopf</code><span class="sig-paren">(</span><em>network</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/EconomicDispatcher.xhtml#Network.lopf"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Function that runs the optimization procces</p>
+<p>Returns:</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="EconomicDispatcher.Simple">
+<em class="property">class </em><code class="descclassname">EconomicDispatcher.</code><code class="descname">Simple</code><a class="reference internal" href="_modules/EconomicDispatcher.xhtml#Simple"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a><span class="link-target"> [https://docs.python.org/2/library/functions.html#object]</span></p>
+<p>Simple optimization problem, using only 3 basic constrains: Unit, Balance , Cost</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>file</strong> &#8211; file to be loaded with all the data</li>
+<li><strong>solver</strong> &#8211; string that defines which optimization solver to be used e.g. the free software GLPK or the commercial software Gurobi</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Returns:</p>
+<dl class="method">
+<dt id="EconomicDispatcher.Simple.BalanceRule">
+<code class="descname">BalanceRule</code><span class="sig-paren">(</span><em>model</em>, <em>t</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/EconomicDispatcher.xhtml#Simple.BalanceRule"><span class="viewcode-link">[source]</span></a></dt>
+<dd><dl class="docutils">
+<dt>Generated power and load needed should be matched, the sum off all the powers at a time instance <span class="math">\(t\)</span> needs to match the load at an time instance <span class="math">\(t\)</span></dt>
+<dd><blockquote class="first">
+<div><div class="math">
+\[\sum_{i=1}^{i=j}  P[i,t]  = Load[t]\]</div>
+</div></blockquote>
+<p class="last">Where <span class="math">\(Load[t]\)</span> is the load at time instance <span class="math">\(t\)</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="EconomicDispatcher.Simple.CostRule">
+<code class="descname">CostRule</code><span class="sig-paren">(</span><em>model</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/EconomicDispatcher.xhtml#Simple.CostRule"><span class="viewcode-link">[source]</span></a></dt>
+<dd><dl class="docutils">
+<dt>Defining the cost rule that pyomo uses</dt>
+<dd><div class="first last math">
+\[\sum_{t=1}^{t=t_{end}} \Big( \sum_{i=1}^{i=j} P_{cost}[i] \cdot P[i,t]  \Big)\]</div>
+</dd>
+</dl>
+<p>where <span class="math">\(t_{end}\)</span> is the end time of the series, <span class="math">\(P_{cost}[i]\)</span> is the cost of generator at place i (e.g. the i th generator)
+<span class="math">\(P[i,t]\)</span> is the power that can be generated by an generator at time <span class="math">\(t\)</span></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="EconomicDispatcher.Simple.Load">
+<code class="descname">Load</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/EconomicDispatcher.xhtml#Simple.Load"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Function that loads the data from an excel sheets in order to further process it.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="EconomicDispatcher.Simple.Main">
+<code class="descname">Main</code><span class="sig-paren">(</span><em>Pmax</em>, <em>Pmin</em>, <em>CostsOrdered</em>, <em>LoadP</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/EconomicDispatcher.xhtml#Simple.Main"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Main function of the simple network model</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">solotion</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="EconomicDispatcher.Simple.Model">
+<code class="descname">Model</code><span class="sig-paren">(</span><em>Pmax</em>, <em>Pmin</em>, <em>CostsOrdered</em>, <em>LoadP</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/EconomicDispatcher.xhtml#Simple.Model"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Initialises the model in the pyomo framework</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="EconomicDispatcher.Simple.Printer">
+<code class="descname">Printer</code><span class="sig-paren">(</span><em>model</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/EconomicDispatcher.xhtml#Simple.Printer"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>For debugging purpose only prints the output of the result if the debug option has been set</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="EconomicDispatcher.Simple.Solver">
+<code class="descname">Solver</code><span class="sig-paren">(</span><em>model</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/EconomicDispatcher.xhtml#Simple.Solver"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Solves the linear objective function</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">results</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="EconomicDispatcher.Simple.UnitRule">
+<code class="descname">UnitRule</code><span class="sig-paren">(</span><em>model</em>, <em>i</em>, <em>t</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/EconomicDispatcher.xhtml#Simple.UnitRule"><span class="viewcode-link">[source]</span></a></dt>
+<dd><dl class="docutils">
+<dt>Power delivered from the generator on time interval <span class="math">\(t\)</span> cannot be larger then maximum power of the generator and should be higher then the minimum power the generator must deliver</dt>
+<dd><div class="first last math">
+\[P_{min}[i] \leq P[i,t] \leq P_{max}[i]\]</div>
+</dd>
+</dl>
+<p>Where <span class="math">\(P_{min}[i]\)</span> is the minimum power generator i can deliver , <span class="math">\(P[i,t]\)</span> is the desired power at time <span class="math">\(t\)</span>  ,  <span class="math">\(P_{max}[i]\)</span> is the maximum power generator i can deliver</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+  </body>
+</html>

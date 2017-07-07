@@ -1,0 +1,19 @@
+digraph {
+
+
+   "html request" -> index;
+   "html request" -> "/delsession";
+   "html request" -> "/session" -> "data";
+   "html request" -> "/solve" -> JsonFormatter -> EconomicDispatcher;
+   index -> browser;
+   EconomicDispatcher -> browser;
+   data -> browser;
+   "/delsession" -> browser;
+   subgraph cluster_5 {
+     label="Node.Js";
+     asset;
+
+   }
+   asset -> index;
+
+}

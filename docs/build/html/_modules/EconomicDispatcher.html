@@ -1,0 +1,1016 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>EconomicDispatcher &#8212; Web App For Day Ahead Market Clearing 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for EconomicDispatcher</h1><div class="highlight"><pre>
+<span></span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Economic Dispatcher</span>
+
+<span class="sd">    Purpose of this module is to dispatch between the different types of economic dispatchers and calculated the minimum</span>
+<span class="sd">    objective function</span>
+
+<span class="sd">&#39;&#39;&#39;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span>
+<span class="kn">import</span> <span class="nn">pandas</span>
+<span class="kn">from</span> <span class="nn">pyomo.environ</span> <span class="k">import</span> <span class="o">*</span>
+<span class="kn">import</span> <span class="nn">pypsa</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">pyomo.environ</span> <span class="k">import</span> <span class="n">Constraint</span>
+<span class="kn">import</span> <span class="nn">pandas</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">from</span>  <span class="nn">more_itertools</span> <span class="k">import</span> <span class="n">unique_everseen</span>
+<span class="kn">import</span> <span class="nn">zipfile</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">datetime</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">io</span>
+<span class="kn">import</span> <span class="nn">glob</span>
+
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;exampleApp&quot;</span><span class="p">)</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+
+<span class="c1"># create the logging file handler</span>
+<span class="n">fh</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">FileHandler</span><span class="p">(</span><span class="s2">&quot;logs/model.log&quot;</span><span class="p">)</span>
+<span class="n">formatter</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">Formatter</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%(asctime)s</span><span class="s1"> - </span><span class="si">%(name)s</span><span class="s1"> - </span><span class="si">%(levelname)s</span><span class="s1"> - </span><span class="si">%(message)s</span><span class="s1">&#39;</span><span class="p">)</span>
+<span class="n">fh</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">formatter</span><span class="p">)</span>
+
+<span class="c1"># add handler to logger object</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">fh</span><span class="p">)</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Economic dispatcher started&quot;</span><span class="p">)</span>
+
+<span class="c1">#debug settings</span>
+<span class="n">debug</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="nb">zip</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="k">class</span> <span class="nc">Output</span><span class="p">():</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Writing the output&quot;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">zipdir</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">ziph</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Function that stores the raw output of a folder in a zip file</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            path: folder path to be zipped</span>
+<span class="sd">            ziph: zip handler</span>
+
+<span class="sd">        Returns:</span>
+
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">for</span> <span class="n">root</span><span class="p">,</span> <span class="n">dirs</span><span class="p">,</span> <span class="n">files</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
+                <span class="n">ziph</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">file</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">NetworkExport</span><span class="p">(</span><span class="n">network</span><span class="p">):</span>
+        <span class="kn">import</span> <span class="nn">glob</span><span class="o">,</span> <span class="nn">os</span>
+        <span class="n">test</span> <span class="o">=</span> <span class="s1">&#39;json_out/*&#39;</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">test</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">r</span><span class="p">:</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+        <span class="n">StaticOutput</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">VaryingOutput</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">allowed_types</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">bool</span><span class="p">]</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">typeDict</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+        <span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="n">attr</span> <span class="k">for</span> <span class="n">attr</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="n">network</span><span class="p">)</span> <span class="k">if</span>
+                   <span class="nb">type</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">network</span><span class="p">,</span> <span class="n">attr</span><span class="p">))</span> <span class="ow">in</span> <span class="n">allowed_types</span> <span class="ow">and</span> <span class="n">attr</span> <span class="o">!=</span> <span class="s2">&quot;name&quot;</span> <span class="ow">and</span> <span class="n">attr</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">&quot;__&quot;</span><span class="p">]</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="p">[</span><span class="n">network</span><span class="o">.</span><span class="n">name</span><span class="p">]</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="n">index</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">columns</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="p">[[</span><span class="nb">getattr</span><span class="p">(</span><span class="n">network</span><span class="p">,</span> <span class="n">col</span><span class="p">)</span> <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">columns</span><span class="p">]])</span>
+        <span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;name&quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">component</span> <span class="ow">in</span> <span class="n">pypsa</span><span class="o">.</span><span class="n">components</span><span class="o">.</span><span class="n">all_components</span> <span class="o">-</span> <span class="p">{</span><span class="s2">&quot;SubNetwork&quot;</span><span class="p">}:</span>
+
+            <span class="n">list_name</span> <span class="o">=</span> <span class="n">network</span><span class="o">.</span><span class="n">components</span><span class="p">[</span><span class="n">component</span><span class="p">][</span><span class="s2">&quot;list_name&quot;</span><span class="p">]</span>
+            <span class="n">attrs</span> <span class="o">=</span> <span class="n">network</span><span class="o">.</span><span class="n">components</span><span class="p">[</span><span class="n">component</span><span class="p">][</span><span class="s2">&quot;attrs&quot;</span><span class="p">]</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="n">network</span><span class="o">.</span><span class="n">df</span><span class="p">(</span><span class="n">component</span><span class="p">)</span>
+            <span class="n">pnl</span> <span class="o">=</span> <span class="n">network</span><span class="o">.</span><span class="n">pnl</span><span class="p">(</span><span class="n">component</span><span class="p">)</span>
+
+            <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            Export static attributes</span>
+<span class="sd">            &#39;&#39;&#39;</span>
+            <span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;name&quot;</span>
+            <span class="k">if</span> <span class="n">df</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">col_export</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+                <span class="c1"># do not export derived attributes</span>
+                <span class="k">if</span> <span class="n">col</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;sub_network&quot;</span><span class="p">,</span> <span class="s2">&quot;r_pu&quot;</span><span class="p">,</span> <span class="s2">&quot;x_pu&quot;</span><span class="p">,</span> <span class="s2">&quot;g_pu&quot;</span><span class="p">,</span> <span class="s2">&quot;b_pu&quot;</span><span class="p">]:</span>
+                    <span class="k">continue</span>
+                <span class="k">if</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">attrs</span><span class="o">.</span><span class="n">index</span> <span class="ow">and</span> <span class="n">pd</span><span class="o">.</span><span class="n">isnull</span><span class="p">(</span><span class="n">attrs</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="n">col</span><span class="p">,</span> <span class="s2">&quot;default&quot;</span><span class="p">])</span> <span class="ow">and</span> <span class="n">pd</span><span class="o">.</span><span class="n">isnull</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="n">col</span><span class="p">])</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
+                    <span class="k">continue</span>
+                <span class="k">if</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">attrs</span><span class="o">.</span><span class="n">index</span> <span class="ow">and</span> <span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">==</span> <span class="n">attrs</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="n">col</span><span class="p">,</span> <span class="s2">&quot;default&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
+                    <span class="k">continue</span>
+
+                <span class="n">col_export</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">col</span><span class="p">)</span>
+
+            <span class="n">df</span><span class="p">[</span><span class="n">col_export</span><span class="p">]</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="s2">&quot;json_out/&quot;</span> <span class="o">+</span> <span class="n">list_name</span> <span class="o">+</span> <span class="s2">&quot;.json&quot;</span><span class="p">)</span>
+
+            <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            Export varying attributes</span>
+<span class="sd">            &#39;&#39;&#39;</span>
+            <span class="k">for</span> <span class="n">attr</span> <span class="ow">in</span> <span class="n">pnl</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">attr</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">attrs</span><span class="o">.</span><span class="n">index</span><span class="p">:</span>
+                    <span class="n">col_export</span> <span class="o">=</span> <span class="n">pnl</span><span class="p">[</span><span class="n">attr</span><span class="p">]</span><span class="o">.</span><span class="n">columns</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">default</span> <span class="o">=</span> <span class="n">attrs</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="n">attr</span><span class="p">,</span> <span class="s2">&quot;default&quot;</span><span class="p">]</span>
+
+                    <span class="k">if</span> <span class="n">pd</span><span class="o">.</span><span class="n">isnull</span><span class="p">(</span><span class="n">default</span><span class="p">):</span>
+                        <span class="n">col_export</span> <span class="o">=</span> <span class="n">pnl</span><span class="p">[</span><span class="n">attr</span><span class="p">]</span><span class="o">.</span><span class="n">columns</span><span class="p">[(</span><span class="o">~</span><span class="n">pd</span><span class="o">.</span><span class="n">isnull</span><span class="p">(</span><span class="n">pnl</span><span class="p">[</span><span class="n">attr</span><span class="p">]))</span><span class="o">.</span><span class="n">any</span><span class="p">()]</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">col_export</span> <span class="o">=</span> <span class="n">pnl</span><span class="p">[</span><span class="n">attr</span><span class="p">]</span><span class="o">.</span><span class="n">columns</span><span class="p">[(</span><span class="n">pnl</span><span class="p">[</span><span class="n">attr</span><span class="p">]</span> <span class="o">!=</span> <span class="n">default</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">()]</span>
+
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">col_export</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">pnl</span><span class="p">[</span><span class="n">attr</span><span class="p">]</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="n">col_export</span><span class="p">]</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="s2">&quot;json_out/&quot;</span> <span class="o">+</span> <span class="n">list_name</span> <span class="o">+</span> <span class="s2">&quot;-&quot;</span> <span class="o">+</span> <span class="n">attr</span> <span class="o">+</span> <span class="s2">&quot;.json&quot;</span><span class="p">)</span>
+
+        <span class="n">ts</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        If zip option is selected</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="nb">zip</span><span class="p">:</span>
+            <span class="n">zipf</span> <span class="o">=</span> <span class="n">zipfile</span><span class="o">.</span><span class="n">ZipFile</span><span class="p">(</span>
+                <span class="s1">&#39;zips_out/csvdata&#39;</span> <span class="o">+</span> <span class="s2">&quot;-&quot;</span> <span class="o">+</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">fromtimestamp</span><span class="p">(</span><span class="n">ts</span><span class="p">)</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1"> %H:%M:%S&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;.zip&#39;</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">,</span>
+                <span class="n">zipfile</span><span class="o">.</span><span class="n">ZIP_DEFLATED</span><span class="p">)</span>
+            <span class="n">Output</span><span class="o">.</span><span class="n">zipdir</span><span class="p">(</span><span class="s1">&#39;json_out&#39;</span><span class="p">,</span> <span class="n">zipf</span><span class="p">)</span>
+            <span class="n">zipf</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">StaticOutput</span><span class="p">,</span> <span class="n">VaryingOutput</span>
+
+
+
+
+<div class="viewcode-block" id="Simple"><a class="viewcode-back" href="../code.html#EconomicDispatcher.Simple">[docs]</a><span class="k">class</span> <span class="nc">Simple</span><span class="p">():</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Simple optimization problem, using only 3 basic constrains: Unit, Balance , Cost</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        file : file to be loaded with all the data</span>
+<span class="sd">        solver : string that defines which optimization solver to be used e.g. the free software GLPK or the commercial software Gurobi</span>
+
+<span class="sd">    Returns:</span>
+
+<span class="sd">    &#39;&#39;&#39;</span>
+
+
+<div class="viewcode-block" id="Simple.Main"><a class="viewcode-back" href="../code.html#EconomicDispatcher.Simple.Main">[docs]</a>    <span class="k">def</span> <span class="nf">Main</span><span class="p">(</span><span class="n">Pmax</span><span class="p">,</span><span class="n">Pmin</span><span class="p">,</span><span class="n">CostsOrdered</span><span class="p">,</span><span class="n">LoadP</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Main function of the simple network model</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            solotion</span>
+
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Started the simple model&quot;</span><span class="p">)</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="n">Simple</span><span class="o">.</span><span class="n">Model</span><span class="p">(</span><span class="n">Pmax</span><span class="p">,</span><span class="n">Pmin</span><span class="p">,</span><span class="n">CostsOrdered</span><span class="p">,</span><span class="n">LoadP</span><span class="p">)</span>
+        <span class="c1">#model.system_balance = Constraint(rule=Simple.BalanceRule(model, model.T))</span>
+        <span class="c1">#model.unitoutputcons = Constraint(rule=Simple.UnitRule(model,model.I, model.T,))</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">cost</span> <span class="o">=</span> <span class="n">Objective</span><span class="p">(</span><span class="n">rule</span><span class="o">=</span><span class="n">Simple</span><span class="o">.</span><span class="n">CostRule</span><span class="p">,</span> <span class="n">sense</span><span class="o">=</span><span class="n">minimize</span><span class="p">)</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="n">Simple</span><span class="o">.</span><span class="n">Solver</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">results</span><span class="p">)</span>
+        <span class="n">Simple</span><span class="o">.</span><span class="n">Printer</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">results</span></div>
+
+<div class="viewcode-block" id="Simple.Solver"><a class="viewcode-back" href="../code.html#EconomicDispatcher.Simple.Solver">[docs]</a>    <span class="k">def</span> <span class="nf">Solver</span><span class="p">(</span><span class="n">model</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Solves the linear objective function</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            results</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">opt</span> <span class="o">=</span> <span class="n">SolverFactory</span><span class="p">(</span><span class="s1">&#39;glpk&#39;</span><span class="p">)</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="n">opt</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">results</span></div>
+
+<div class="viewcode-block" id="Simple.Printer"><a class="viewcode-back" href="../code.html#EconomicDispatcher.Simple.Printer">[docs]</a>    <span class="k">def</span> <span class="nf">Printer</span><span class="p">(</span><span class="n">model</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        For debugging purpose only prints the output of the result if the debug option has been set</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Objective function&#39;</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">cost</span><span class="p">())</span>  <span class="c1"># objective function value</span>
+        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">T</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;---&#39;</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="s1">&#39;---&#39;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">I</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">P</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">t</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;---&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Simple.Load"><a class="viewcode-back" href="../code.html#EconomicDispatcher.Simple.Load">[docs]</a>    <span class="k">def</span> <span class="nf">Load</span><span class="p">():</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            Function that loads the data from an excel sheets in order to further process it.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">UnitData</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">read_excel</span><span class="p">(</span><span class="s1">&#39;test.xlsx&#39;</span><span class="p">,</span> <span class="n">sheetname</span><span class="o">=</span><span class="s1">&#39;unit&#39;</span><span class="p">)</span>
+        <span class="n">Load</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">read_excel</span><span class="p">(</span><span class="s1">&#39;test2.xlsx&#39;</span><span class="p">,</span> <span class="n">sheetname</span><span class="o">=</span><span class="s1">&#39;load&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">UnitData</span><span class="p">,</span> <span class="n">Load</span></div>
+
+<div class="viewcode-block" id="Simple.Model"><a class="viewcode-back" href="../code.html#EconomicDispatcher.Simple.Model">[docs]</a>    <span class="k">def</span> <span class="nf">Model</span><span class="p">(</span><span class="n">Pmax</span><span class="p">,</span><span class="n">Pmin</span><span class="p">,</span><span class="n">CostsOrdered</span><span class="p">,</span><span class="n">LoadP</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Initialises the model in the pyomo framework</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+
+        <span class="n">model</span> <span class="o">=</span> <span class="n">ConcreteModel</span><span class="p">()</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Call the load function</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="c1">#[UnitData, Load] = Simple.Load()</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">Pmax</span><span class="p">)):</span>
+            <span class="n">s</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">Pmax</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+            <span class="n">Pmax</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">s</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">Pmax</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">Pmax</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+            <span class="n">s</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">Pmin</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+            <span class="n">Pmin</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">s</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">Pmin</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">Pmin</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">LoadP</span><span class="p">)):</span>
+            <span class="n">s</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">LoadP</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+            <span class="n">LoadP</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">s</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">LoadP</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">LoadP</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;test data:&quot;</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;Pmin&#39;</span><span class="p">:</span><span class="n">Pmin</span><span class="p">,</span>
+            <span class="s1">&#39;Pmax&#39;</span><span class="p">:</span><span class="n">Pmax</span><span class="p">,</span>
+            <span class="s1">&#39;Cost&#39;</span><span class="p">:</span><span class="n">CostsOrdered</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="n">Generator</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Pmin&#39;</span><span class="p">,</span><span class="s1">&#39;Pmax&#39;</span><span class="p">,</span><span class="s1">&#39;Cost&#39;</span><span class="p">])</span>
+        <span class="n">Generator</span><span class="o">.</span><span class="n">reindex</span><span class="p">([</span><span class="s1">&#39;i1&#39;</span><span class="p">,</span><span class="s1">&#39;i2&#39;</span><span class="p">])</span>
+        <span class="c1">#Generator.set_index( [(&#39;i1&#39;,&#39;i2&#39;),(&#39;Pmin&#39;,&#39;Pmax&#39;,&#39;Cost&#39;)] )</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">Generator</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">Generator</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+
+        <span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;LoadP&#39;</span><span class="p">:</span><span class="n">LoadP</span><span class="p">,</span>
+        <span class="p">}</span>
+
+        <span class="n">Load</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">Load</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">Load</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+
+        <span class="n">Load</span><span class="o">.</span><span class="n">to_excel</span><span class="p">(</span><span class="s1">&#39;test2.xlsx&#39;</span><span class="p">,</span><span class="s1">&#39;load&#39;</span><span class="p">)</span>
+        <span class="n">Generator</span><span class="o">.</span><span class="n">to_excel</span><span class="p">(</span><span class="s1">&#39;test.xlsx&#39;</span><span class="p">,</span><span class="s1">&#39;unit&#39;</span><span class="p">)</span>
+        <span class="c1"># [UnitData, Load] = Simple.Load()</span>
+
+
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            Define the discrete time that is used, and  define the generators</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">Generator</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">I</span> <span class="o">=</span> <span class="n">Set</span><span class="p">(</span><span class="n">ordered</span><span class="o">=</span><span class="s1">&#39;True&#39;</span><span class="p">,</span> <span class="n">initialize</span><span class="o">=</span><span class="n">Generator</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">Set</span><span class="p">(</span><span class="n">ordered</span><span class="o">=</span><span class="s1">&#39;True&#39;</span><span class="p">,</span> <span class="n">initialize</span><span class="o">=</span><span class="n">Load</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;model T:&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            Define the model parameters</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;testing&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">Generator</span><span class="o">.</span><span class="n">Pmax</span><span class="o">.</span><span class="n">to_dict</span><span class="p">())</span>
+
+        <span class="k">def</span> <span class="nf">s_validate</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">i</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">v</span><span class="p">))</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+
+            <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+
+        <span class="n">model</span><span class="o">.</span><span class="n">Pmin</span> <span class="o">=</span> <span class="n">Param</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">I</span><span class="p">,</span> <span class="n">initialize</span><span class="o">=</span><span class="n">Generator</span><span class="o">.</span><span class="n">Pmax</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span> <span class="p">)</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">Pmax</span> <span class="o">=</span> <span class="n">Param</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">I</span><span class="p">,</span> <span class="n">initialize</span><span class="o">=</span><span class="n">Generator</span><span class="o">.</span><span class="n">Pmin</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>  <span class="p">)</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">Cost</span> <span class="o">=</span> <span class="n">Param</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">I</span><span class="p">,</span> <span class="n">initialize</span><span class="o">=</span><span class="n">Generator</span><span class="o">.</span><span class="n">Cost</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>  <span class="p">)</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">Load</span> <span class="o">=</span> <span class="n">Param</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">initialize</span><span class="o">=</span><span class="n">Load</span><span class="o">.</span><span class="n">LoadP</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span> <span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;model load&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">Load</span><span class="p">)</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">           Define the decision variables</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">Var</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">I</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">within</span><span class="o">=</span><span class="n">PositiveReals</span><span class="p">)</span>
+        <span class="n">Constraint</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">Cost</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="n">model</span><span class="o">.</span><span class="n">P</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">t</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">I</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">T</span><span class="p">)</span> <span class="p">)</span>
+        <span class="c1">#Constraint(model.Pmin[i] &lt;= model.P[i, t] &lt;= model.Pmax[i])</span>
+        <span class="c1">#Constraint(sum(model.P[i, t] for i in model.I) == model.Load[t])</span>
+
+        <span class="k">return</span> <span class="n">model</span></div>
+
+<div class="viewcode-block" id="Simple.CostRule"><a class="viewcode-back" href="../code.html#EconomicDispatcher.Simple.CostRule">[docs]</a>    <span class="k">def</span> <span class="nf">CostRule</span><span class="p">(</span><span class="n">model</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            Defining the cost rule that pyomo uses</span>
+<span class="sd">                .. math::</span>
+
+<span class="sd">                        \sum_{t=1}^{t=t_{end}} \Big( \sum_{i=1}^{i=j} P_{cost}[i] \cdot P[i,t]  \Big)</span>
+
+<span class="sd">            where :math:`t_{end}` is the end time of the series, :math:`P_{cost}[i]` is the cost of generator at place i (e.g. the i th generator)</span>
+<span class="sd">            :math:`P[i,t]` is the power that can be generated by an generator at time :math:`t`</span>
+
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">Cost</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="n">model</span><span class="o">.</span><span class="n">P</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">t</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">I</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">T</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Simple.UnitRule"><a class="viewcode-back" href="../code.html#EconomicDispatcher.Simple.UnitRule">[docs]</a>    <span class="k">def</span> <span class="nf">UnitRule</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            Power delivered from the generator on time interval :math:`t` cannot be larger then maximum power of the generator and should be higher then the minimum power the generator must deliver</span>
+<span class="sd">                   .. math::</span>
+
+<span class="sd">                        P_{min}[i] \leq P[i,t] \leq P_{max}[i]</span>
+
+<span class="sd">            Where :math:`P_{min}[i]` is the minimum power generator i can deliver , :math:`P[i,t]` is the desired power at time :math:`t`  ,  :math:`P_{max}[i]` is the maximum power generator i can deliver</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="n">model</span><span class="o">.</span><span class="n">Pmin</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">model</span><span class="o">.</span><span class="n">P</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">t</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">model</span><span class="o">.</span><span class="n">Pmax</span><span class="p">[</span><span class="n">i</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="Simple.BalanceRule"><a class="viewcode-back" href="../code.html#EconomicDispatcher.Simple.BalanceRule">[docs]</a>    <span class="k">def</span> <span class="nf">BalanceRule</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            Generated power and load needed should be matched, the sum off all the powers at a time instance :math:`t` needs to match the load at an time instance :math:`t`</span>
+<span class="sd">                           .. math::</span>
+
+<span class="sd">                                \sum_{i=1}^{i=j}  P[i,t]  = Load[t]</span>
+
+<span class="sd">             Where :math:`Load[t]` is the load at time instance :math:`t`</span>
+
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">T</span>
+        <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">P</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">t</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">I</span><span class="p">)</span> <span class="o">==</span> <span class="n">model</span><span class="o">.</span><span class="n">Load</span><span class="p">[</span><span class="n">t</span><span class="p">]</span></div></div>
+
+
+
+<div class="viewcode-block" id="Network"><a class="viewcode-back" href="../code.html#EconomicDispatcher.Network">[docs]</a><span class="k">class</span> <span class="nc">Network</span><span class="p">:</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">       Network constrained optimization problem</span>
+
+<span class="sd">       Args:</span>
+<span class="sd">           file</span>
+<span class="sd">           solver</span>
+
+<span class="sd">       Returns:</span>
+<span class="sd">           solotion : Json file with simple marketclearing</span>
+
+<span class="sd">    &#39;&#39;&#39;</span>
+
+<div class="viewcode-block" id="Network.Main"><a class="viewcode-back" href="../code.html#EconomicDispatcher.Network.Main">[docs]</a>    <span class="k">def</span> <span class="nf">Main</span><span class="p">(</span><span class="n">model</span><span class="p">,</span>
+            <span class="n">ElectricLines</span> <span class="p">,</span> <span class="n">ElectricLinesR</span><span class="p">,</span> <span class="n">ElectricLinesC</span><span class="p">,</span> <span class="n">ElectricLinesX</span><span class="p">,</span> <span class="n">Buss</span><span class="p">,</span> <span class="n">BussVnom</span><span class="p">,</span> <span class="n">BussType</span><span class="p">,</span> <span class="n">BussVset</span><span class="p">,</span> <span class="n">BussVmax</span><span class="p">,</span> <span class="n">BussVmin</span><span class="p">,</span> <span class="n">BussConnection</span> <span class="p">,</span>
+            <span class="n">ElectricLinesCcap</span><span class="p">,</span> <span class="n">ElectricLinesL</span><span class="p">,</span> <span class="n">ElectricLinesPhaseShift</span><span class="p">,</span> <span class="n">ElectricLinesAngMax</span><span class="p">,</span> <span class="n">ElectricLinesAngMin</span><span class="p">,</span> <span class="n">ElectricLinesLength</span><span class="p">,</span> <span class="n">ElectricLinesConnection</span> <span class="p">,</span><span class="n">ElectricLinesPmax</span><span class="p">,</span> <span class="n">Generators</span><span class="p">,</span>
+            <span class="n">CostsOrdered</span><span class="p">,</span> <span class="n">PnomOrdered</span><span class="p">,</span> <span class="n">RampUp</span><span class="p">,</span> <span class="n">RampDown</span><span class="p">,</span> <span class="n">Effciency</span><span class="p">,</span> <span class="n">MinDownTime</span><span class="p">,</span> <span class="n">MaxDownTime</span><span class="p">,</span>  <span class="n">PminOrdered</span><span class="p">,</span> <span class="n">GeneratorConnection</span> <span class="p">,</span> <span class="n">Time</span><span class="p">,</span>
+            <span class="n">PowerBlocks</span><span class="p">,</span> <span class="n">PmaxOrdered</span><span class="p">,</span> <span class="n">StartUpCost</span><span class="p">,</span> <span class="n">ShutdownCost</span><span class="p">,</span> <span class="n">Initstatus</span><span class="p">,</span> <span class="n">CapCost</span><span class="p">,</span> <span class="n">PsetPoint</span><span class="p">,</span>  <span class="n">QsetPoint</span><span class="p">,</span> <span class="n">Loads</span><span class="p">,</span> <span class="n">LoadP</span><span class="p">,</span> <span class="n">LoadQ</span><span class="p">,</span> <span class="n">LoadTime</span><span class="p">,</span> <span class="n">LoadConnection</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            Main network function that calls necessary network functions</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            ElectricLines (): Pandas Data Framework from the frontend</span>
+<span class="sd">            ElectricLinesR (): Pandas Data Framework from the frontend</span>
+<span class="sd">            ElectricLinesC (): Pandas Data Framework from the frontend</span>
+<span class="sd">            ElectricLinesX (): Pandas Data Framework from the frontend</span>
+<span class="sd">            Buss (): Pandas Data Framework from the frontend</span>
+<span class="sd">            BussVnom (): Pandas Data Framework from the frontend</span>
+<span class="sd">            BussType (): Pandas Data Framework from the frontend</span>
+<span class="sd">            BussVset (): Pandas Data Framework from the frontend</span>
+<span class="sd">            BussVmax (): Pandas Data Framework from the frontend</span>
+<span class="sd">            BussVmin (): Pandas Data Framework from the frontend</span>
+<span class="sd">            BussConnection ():</span>
+<span class="sd">            ElectricLinesCcap (): Pandas Data Framework from the frontend</span>
+<span class="sd">            ElectricLinesL (): Pandas Data Framework from the frontend</span>
+<span class="sd">            ElectricLinesPhaseShift (): Pandas Data Framework from the frontend</span>
+<span class="sd">            ElectricLinesAngMax (): Pandas Data Framework from the frontend</span>
+<span class="sd">            ElectricLinesAngMin (): Pandas Data Framework from the frontend</span>
+<span class="sd">            ElectricLinesLength (): Pandas Data Framework from the frontend</span>
+<span class="sd">            ElectricLinesConnection (): Pandas Data Framework from the frontend</span>
+<span class="sd">            ElectricLinesPmax (): Pandas Data Framework from the frontend</span>
+<span class="sd">            Generators (): Pandas Data Framework from the frontend</span>
+<span class="sd">            CostsOrdered (): Pandas Data Framework from the frontend</span>
+<span class="sd">            PnomOrdered (): Pandas Data Framework from the frontend</span>
+<span class="sd">            RampUp (): Pandas Data Framework from the frontend</span>
+<span class="sd">            RampDown (): Pandas Data Framework from the frontend</span>
+<span class="sd">            Effciency (): Pandas Data Framework from the frontend</span>
+<span class="sd">            MinDownTime (): Pandas Data Framework from the frontend</span>
+<span class="sd">            MaxDownTime (): Pandas Data Framework from the frontend</span>
+<span class="sd">            PminOrdered (): Pandas Data Framework from the frontend</span>
+<span class="sd">            GeneratorConnection (): Pandas Data Framework from the frontend</span>
+<span class="sd">            PmaxOrdered (): Pandas Data Framework from the frontend</span>
+<span class="sd">            StartUpCost (): Pandas Data Framework from the frontend</span>
+<span class="sd">            ShutdownCost (): Pandas Data Framework from the frontend</span>
+<span class="sd">            Initstatus (): Pandas Data Framework from the frontend</span>
+<span class="sd">            CapCost (): Pandas Data Framework from the frontend</span>
+<span class="sd">            PsetPoint (): Pandas Data Framework from the frontend</span>
+<span class="sd">            QsetPoint (): Pandas Data Framework from the frontend</span>
+<span class="sd">            Loads (): Pandas Data Framework from the frontend</span>
+<span class="sd">            LoadP (): Pandas Data Framework from the frontend</span>
+<span class="sd">            LoadTime (): Pandas Data Framework from the frontend</span>
+<span class="sd">            LoadConnection (): Pandas Data Framework from the frontend</span>
+<span class="sd">            options (): Pandas Data Framework from the frontend</span>
+
+<span class="sd">        Returns:</span>
+
+<span class="sd">        &#39;&#39;&#39;</span>
+
+
+
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Network model started&quot;</span><span class="p">)</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Calculate how many time stamps there are</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Initilize the pypsa network</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">network</span> <span class="o">=</span> <span class="n">pypsa</span><span class="o">.</span><span class="n">Network</span><span class="p">()</span>
+
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Set time indexes of the network component</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">Time</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">Time</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">Time</span> <span class="o">=</span> <span class="n">s</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">Time</span> <span class="o">=</span> <span class="n">Time</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">Time</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">network</span><span class="o">.</span><span class="n">set_snapshots</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,(</span><span class="nb">len</span><span class="p">(</span><span class="n">Time</span><span class="p">))))</span>
+            <span class="n">Time</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">Time</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">network</span><span class="o">.</span><span class="n">snapshots</span><span class="p">)</span>
+
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Add the busses to the network</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">Network</span><span class="o">.</span><span class="n">BussesAdder</span><span class="p">(</span><span class="n">network</span><span class="p">,</span> <span class="n">Buss</span><span class="p">,</span> <span class="n">BussVnom</span><span class="p">,</span> <span class="n">BussVmax</span><span class="p">,</span> <span class="n">BussVmin</span><span class="p">,</span> <span class="n">BussVset</span><span class="p">,</span> <span class="n">BussType</span><span class="p">)</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Add the electric lines to the network</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">Network</span><span class="o">.</span><span class="n">ElectricLinesAdder</span><span class="p">(</span><span class="n">network</span><span class="p">,</span> <span class="n">ElectricLines</span><span class="p">,</span> <span class="n">ElectricLinesR</span><span class="p">,</span> <span class="n">ElectricLinesX</span><span class="p">,</span>  <span class="n">ElectricLinesCcap</span><span class="p">,</span>
+            <span class="n">ElectricLinesL</span><span class="p">,</span> <span class="n">ElectricLinesPhaseShift</span><span class="p">,</span> <span class="n">ElectricLinesAngMax</span><span class="p">,</span> <span class="n">ElectricLinesAngMin</span><span class="p">,</span>  <span class="n">ElectricLinesLength</span><span class="p">,</span> <span class="n">ElectricLinesConnection</span> <span class="p">,</span><span class="n">ElectricLinesPmax</span><span class="p">)</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Add the generators to the network</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">Network</span><span class="o">.</span><span class="n">GeneratorAdder</span><span class="p">(</span><span class="n">network</span><span class="p">,</span> <span class="n">Generators</span><span class="p">,</span>  <span class="n">GeneratorConnection</span> <span class="p">,</span> <span class="n">PnomOrdered</span><span class="p">,</span> <span class="n">PminOrdered</span><span class="p">,</span> <span class="n">PmaxOrdered</span><span class="p">,</span>
+            <span class="n">CostsOrdered</span><span class="p">,</span> <span class="n">RampUp</span><span class="p">,</span> <span class="n">RampDown</span><span class="p">,</span> <span class="n">MaxDownTime</span><span class="p">,</span> <span class="n">MinDownTime</span><span class="p">,</span> <span class="n">Initstatus</span><span class="p">,</span> <span class="n">StartUpCost</span><span class="p">,</span> <span class="n">ShutdownCost</span><span class="p">,</span> <span class="n">Effciency</span><span class="p">,</span> <span class="n">CapCost</span><span class="p">,</span> <span class="n">PsetPoint</span><span class="p">,</span>  <span class="n">QsetPoint</span><span class="p">,</span><span class="n">Time</span> <span class="p">)</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Add the loads to the network</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">Network</span><span class="o">.</span><span class="n">LoadAdder</span><span class="p">(</span><span class="n">network</span><span class="p">,</span> <span class="n">Loads</span><span class="p">,</span> <span class="n">LoadP</span><span class="p">,</span> <span class="n">LoadQ</span><span class="p">,</span> <span class="n">LoadConnection</span><span class="p">)</span>
+
+        <span class="n">Network</span><span class="o">.</span><span class="n">Printer</span><span class="p">(</span><span class="n">network</span><span class="p">)</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Run the optimalization</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;network check&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">network</span><span class="o">.</span><span class="n">consistency_check</span><span class="p">())</span>
+        <span class="n">StaticOutput</span><span class="p">,</span> <span class="n">VaryingOutput</span> <span class="o">=</span> <span class="n">Network</span><span class="o">.</span><span class="n">lopf</span><span class="p">(</span><span class="n">network</span> <span class="p">)</span>
+        <span class="k">return</span> <span class="n">StaticOutput</span><span class="p">,</span> <span class="n">VaryingOutput</span></div>
+
+
+<div class="viewcode-block" id="Network.BussesAdder"><a class="viewcode-back" href="../code.html#EconomicDispatcher.Network.BussesAdder">[docs]</a>    <span class="k">def</span> <span class="nf">BussesAdder</span><span class="p">(</span><span class="n">network</span><span class="p">,</span><span class="n">Buss</span><span class="p">,</span> <span class="n">BussVnom</span><span class="p">,</span> <span class="n">BussVmax</span><span class="p">,</span> <span class="n">BussVmin</span><span class="p">,</span> <span class="n">BussVset</span><span class="p">,</span> <span class="n">BussType</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            Add all the buses to the network component</span>
+
+<span class="sd">         Args:</span>
+<span class="sd">             Buss (): Pandas dataframework from frontend</span>
+<span class="sd">             BussVnom (): Pandas dataframework from frontend</span>
+<span class="sd">             BussVmax (): Pandas dataframework from frontend</span>
+<span class="sd">             BussVmin (): Pandas dataframework from frontend</span>
+<span class="sd">             BussVset (): Pandas dataframework from frontend</span>
+<span class="sd">             BussType (): Pandas dataframework from frontend</span>
+
+<span class="sd">         Returns:</span>
+
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">Buss</span><span class="p">))</span> <span class="p">:</span>
+            <span class="n">network</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">&quot;Bus&quot;</span><span class="p">,</span> <span class="s2">&quot;electric bus </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">Buss</span><span class="p">[</span><span class="n">i</span><span class="p">]),</span>
+                        <span class="n">v_nom</span><span class="o">=</span><span class="n">BussVnom</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                        <span class="nb">type</span><span class="o">=</span><span class="n">BussType</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                        <span class="n">v_mag_pu_set</span><span class="o">=</span><span class="n">BussVset</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                        <span class="n">v_mag_pu_min</span><span class="o">=</span><span class="n">BussVmin</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                        <span class="n">v_mag_pu_max</span><span class="o">=</span><span class="n">BussVmax</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                            <span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">network</span><span class="o">.</span><span class="n">buses</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Network.ElectricLinesAdder"><a class="viewcode-back" href="../code.html#EconomicDispatcher.Network.ElectricLinesAdder">[docs]</a>    <span class="k">def</span> <span class="nf">ElectricLinesAdder</span><span class="p">(</span><span class="n">network</span><span class="p">,</span> <span class="n">ElectricLines</span><span class="p">,</span> <span class="n">ElectricLinesR</span><span class="p">,</span> <span class="n">ElectricLinesX</span><span class="p">,</span>  <span class="n">ElectricLinesCcap</span><span class="p">,</span>
+        <span class="n">ElectricLinesL</span><span class="p">,</span> <span class="n">ElectricLinesPhaseShift</span><span class="p">,</span> <span class="n">ElectricLinesAngMax</span><span class="p">,</span> <span class="n">ElectricLinesAngMin</span><span class="p">,</span>  <span class="n">ElectricLinesLength</span><span class="p">,</span> <span class="n">ElectricLinesConnection</span> <span class="p">,</span><span class="n">ElectricLinesPmax</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Add the lines between buses to the network component</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            network (): pypsa network component</span>
+<span class="sd">            ElectricLines (): Pandas dataframework from frontend</span>
+<span class="sd">            ElectricLinesR (): Pandas dataframework from frontend</span>
+<span class="sd">            ElectricLinesX (): Pandas dataframework from frontend</span>
+<span class="sd">            ElectricLinesCcap (): Pandas dataframework from frontend</span>
+<span class="sd">            ElectricLinesL (): Pandas dataframework from frontend</span>
+<span class="sd">            ElectricLinesPhaseShift (): Pandas dataframework from frontend</span>
+<span class="sd">            ElectricLinesAngMax (): Pandas dataframework from frontend</span>
+<span class="sd">            ElectricLinesAngMin (): Pandas dataframework from frontend</span>
+<span class="sd">            ElectricLinesLength (): Pandas dataframework from frontend</span>
+<span class="sd">            ElectricLinesConnection (): Pandas dataframework from frontend</span>
+<span class="sd">            ElectricLinesPmax (): Pandas dataframework from frontend</span>
+
+<span class="sd">        Returns:</span>
+
+<span class="sd">        &#39;&#39;&#39;</span>
+
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">ElectricLines</span><span class="p">)):</span>
+            <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            Split the lines and add all the individual lines</span>
+<span class="sd">            &#39;&#39;&#39;</span>
+            <span class="n">s</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">ElectricLinesConnection</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+            <span class="n">string</span> <span class="o">=</span> <span class="n">s</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">Busses</span> <span class="o">=</span> <span class="n">string</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">Busses</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">):</span>
+                <span class="k">continue</span>
+            <span class="k">else</span><span class="p">:</span>
+
+                <span class="n">network</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">&quot;Line&quot;</span><span class="p">,</span> <span class="s2">&quot;line </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ElectricLines</span><span class="p">[</span><span class="n">i</span><span class="p">]),</span>
+                                <span class="n">bus0</span><span class="o">=</span><span class="s2">&quot;electric bus </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">Busses</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">lstrip</span><span class="p">()),</span>
+                                <span class="n">bus1</span><span class="o">=</span><span class="s2">&quot;electric bus </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">Busses</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">lstrip</span><span class="p">()),</span>
+                                <span class="n">x</span><span class="o">=</span><span class="n">ElectricLinesX</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                                <span class="n">r</span><span class="o">=</span><span class="n">ElectricLinesR</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                                <span class="n">g</span><span class="o">=</span><span class="n">ElectricLinesL</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                                <span class="n">s_nom</span><span class="o">=</span><span class="n">ElectricLinesPmax</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                                <span class="n">capital_cost</span><span class="o">=</span><span class="n">ElectricLinesCcap</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                                <span class="n">length</span><span class="o">=</span><span class="n">ElectricLinesLength</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                                <span class="n">phase_shift</span><span class="o">=</span><span class="n">ElectricLinesPhaseShift</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                                <span class="n">v_ang_max</span><span class="o">=</span><span class="n">ElectricLinesAngMax</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                                <span class="n">v_ang_min</span><span class="o">=</span><span class="n">ElectricLinesAngMin</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                            <span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">network</span><span class="o">.</span><span class="n">lines</span><span class="p">)</span></div>
+
+
+
+
+<div class="viewcode-block" id="Network.GeneratorAdder"><a class="viewcode-back" href="../code.html#EconomicDispatcher.Network.GeneratorAdder">[docs]</a>    <span class="k">def</span> <span class="nf">GeneratorAdder</span><span class="p">(</span> <span class="n">network</span><span class="p">,</span> <span class="n">Generators</span><span class="p">,</span>  <span class="n">GeneratorConnection</span> <span class="p">,</span> <span class="n">PnomOrdered</span><span class="p">,</span> <span class="n">PminOrdered</span><span class="p">,</span>
+                        <span class="n">PmaxOrdered</span><span class="p">,</span> <span class="n">CostsOrdered</span><span class="p">,</span> <span class="n">RampUp</span><span class="p">,</span> <span class="n">RampDown</span><span class="p">,</span> <span class="n">MaxDownTime</span><span class="p">,</span> <span class="n">MinDownTime</span><span class="p">,</span>
+                        <span class="n">Initstatus</span><span class="p">,</span> <span class="n">StartUpCost</span><span class="p">,</span> <span class="n">ShutdownCost</span><span class="p">,</span> <span class="n">Effciency</span><span class="p">,</span> <span class="n">CapCost</span><span class="p">,</span> <span class="n">PsetPoint</span><span class="p">,</span>  <span class="n">QsetPoint</span><span class="p">,</span><span class="n">Time</span> <span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Add the generators to the network component</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            network (): pypsa network component</span>
+<span class="sd">            Generators (): Pandas dataframework from frontend</span>
+<span class="sd">            GeneratorConnection (): Pandas dataframework from frontend</span>
+<span class="sd">            PnomOrdered (): Pandas dataframework from frontend</span>
+<span class="sd">            PminOrdered (): Pandas dataframework from frontend</span>
+<span class="sd">            PmaxOrdered (): Pandas dataframework from frontend</span>
+<span class="sd">            CostsOrdered (): Pandas dataframework from frontend</span>
+<span class="sd">            RampUp (): Pandas dataframework from frontend</span>
+<span class="sd">            RampDown (): Pandas dataframework from frontend</span>
+<span class="sd">            MaxDownTime (): Pandas dataframework from frontend</span>
+<span class="sd">            MinDownTime (): Pandas dataframework from frontend</span>
+<span class="sd">            Initstatus (): Pandas dataframework from frontend</span>
+<span class="sd">            StartUpCost (): Pandas dataframework from frontend</span>
+<span class="sd">            ShutdownCost (): Pandas dataframework from frontend</span>
+<span class="sd">            Effciency (): Pandas dataframework from frontend</span>
+<span class="sd">            CapCost (): Pandas dataframework from frontend</span>
+<span class="sd">            PsetPoint (): Pandas dataframework from frontend</span>
+<span class="sd">            QsetPoint (): Pandas dataframework from frontend</span>
+
+<span class="sd">        Returns:</span>
+
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">Generators</span><span class="p">)):</span>
+
+            <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            Get connection as a string delete first and last character ([,]) get the individual info.</span>
+<span class="sd">            &#39;&#39;&#39;</span>
+            <span class="n">s</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">GeneratorConnection</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+            <span class="n">string</span> <span class="o">=</span> <span class="n">s</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;generator stuff&quot;</span><span class="p">)</span>
+            <span class="n">BussTo</span> <span class="o">=</span> <span class="n">string</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">Generators</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+
+            <span class="k">if</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">BussTo</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">):</span>
+                <span class="n">BussConnect</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">BussTo</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">BussConnect</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">BussTo</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">BussTo</span><span class="p">,</span> <span class="n">string</span><span class="p">)</span>
+
+
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;cost&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">CostsOrdered</span><span class="p">)</span>
+            <span class="n">s</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">CostsOrdered</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+            <span class="n">CostsOrdered</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">s</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">CostsOrdered</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">CostsOrdered</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;cost i &quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">CostsOrdered</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+
+            <span class="c1"># print(&quot;pnom&quot;)</span>
+            <span class="c1"># # print(PnomOrdered)</span>
+            <span class="c1"># s = str(PnomOrdered[i])</span>
+            <span class="c1"># PnomOrdered[i] = s[1:-1]</span>
+            <span class="c1"># PnomOrdered[i]= PnomOrdered[i].split(&#39;,&#39;)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">Time</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">Time</span> <span class="o">==</span> <span class="kc">False</span><span class="p">:</span>
+                <span class="n">MaxDownTime</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">MinDownTime</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+
+            <span class="nb">print</span><span class="p">(</span><span class="n">PminOrdered</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">PsetPoint</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">QsetPoint</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+
+
+            <span class="n">network</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">&quot;Generator&quot;</span><span class="p">,</span> <span class="s2">&quot;Power Plant </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">),</span>
+                        <span class="n">bus</span><span class="o">=</span><span class="s2">&quot;electric bus </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">BussConnect</span><span class="p">),</span>
+                        <span class="n">p_nom</span><span class="o">=</span><span class="n">PnomOrdered</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                        <span class="n">marginal_cost</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                        <span class="n">p_min_pu</span><span class="o">=</span><span class="n">PminOrdered</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                        <span class="n">p_max_pu</span><span class="o">=</span><span class="n">PmaxOrdered</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                        <span class="n">capital_cost</span><span class="o">=</span><span class="n">CapCost</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                        <span class="n">efficiency</span><span class="o">=</span><span class="n">Effciency</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                        <span class="n">p_set</span><span class="o">=</span><span class="n">PsetPoint</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                        <span class="n">q_set</span><span class="o">=</span><span class="n">QsetPoint</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                        <span class="n">committable</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                        <span class="n">initial_status</span><span class="o">=</span><span class="n">Initstatus</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                        <span class="n">ramp_limit_up</span><span class="o">=</span><span class="n">RampUp</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                        <span class="n">ramp_limit_down</span><span class="o">=</span><span class="n">RampDown</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                        <span class="n">ramp_limit_start_up</span><span class="o">=</span><span class="n">RampUp</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                        <span class="n">ramp_limit_shut_down</span><span class="o">=</span><span class="n">RampDown</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                        <span class="n">start_up_cost</span><span class="o">=</span><span class="n">StartUpCost</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                        <span class="n">shut_down_cost</span><span class="o">=</span><span class="n">ShutdownCost</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                        <span class="n">min_up_time</span><span class="o">=</span><span class="n">MaxDownTime</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                        <span class="n">min_down_time</span><span class="o">=</span><span class="n">MinDownTime</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+
+                        <span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">network</span><span class="o">.</span><span class="n">generators</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Network.LoadAdder"><a class="viewcode-back" href="../code.html#EconomicDispatcher.Network.LoadAdder">[docs]</a>    <span class="k">def</span> <span class="nf">LoadAdder</span><span class="p">(</span><span class="n">network</span><span class="p">,</span><span class="n">LoadName</span><span class="p">,</span> <span class="n">Loads</span><span class="p">,</span><span class="n">LoadQ</span><span class="p">,</span> <span class="n">LoadBus</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">            Add loads to the network</span>
+<span class="sd">        ToDo : Qload</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            LoadName : List of Load names</span>
+<span class="sd">            Loads : List of loads that need to be edited</span>
+<span class="sd">            LoadBus : List of the busses where the load is connected to</span>
+
+
+<span class="sd">        &#39;&#39;&#39;</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">Loads</span><span class="p">)):</span>
+            <span class="c1"># print(&quot;printing load data &quot;)</span>
+            <span class="c1"># print(LoadName[i])</span>
+            <span class="c1"># print(Loads[i])</span>
+            <span class="c1"># print(LoadBus)</span>
+
+            <span class="c1"># s = str(Loads[i])</span>
+            <span class="c1"># Loads[i] =  s[1:-1]</span>
+            <span class="c1"># Loads[i]= Loads[i].split(&#39;,&#39;)</span>
+            <span class="n">s</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">LoadBus</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+            <span class="n">string</span> <span class="o">=</span> <span class="n">s</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">BussTo</span> <span class="o">=</span> <span class="n">string</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">BussTo</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">Loads</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">LoadQ</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+
+            <span class="n">network</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">&quot;Load&quot;</span><span class="p">,</span> <span class="s2">&quot;electric load </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">),</span>
+                        <span class="n">bus</span><span class="o">=</span><span class="s2">&quot;electric bus </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">BussTo</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
+                        <span class="n">p_set</span><span class="o">=</span><span class="n">Loads</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                        <span class="n">q_set</span><span class="o">=</span><span class="n">LoadQ</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                        <span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">network</span><span class="o">.</span><span class="n">loads</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Network.Printer"><a class="viewcode-back" href="../code.html#EconomicDispatcher.Network.Printer">[docs]</a>    <span class="k">def</span> <span class="nf">Printer</span><span class="p">(</span><span class="n">network</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Debugger that prints info</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            network : pypsa main network component</span>
+
+<span class="sd">        Returns:</span>
+
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2"> </span><span class="se">\n</span><span class="s2"> &quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;lines&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">network</span><span class="o">.</span><span class="n">lines</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;generators&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">network</span><span class="o">.</span><span class="n">generators</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;busses&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">network</span><span class="o">.</span><span class="n">buses</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;loads&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">network</span><span class="o">.</span><span class="n">loads</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">test</span><span class="p">(</span><span class="n">network</span><span class="p">,</span><span class="n">snapshots</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;test&quot;</span><span class="p">)</span>
+        <span class="c1"># print(&quot;constrains:&quot;)</span>
+        <span class="c1"># model = network.model</span>
+        <span class="c1"># print(model)</span>
+        <span class="c1"># generators = network.generators.index</span>
+        <span class="c1"># print(generators)</span>
+        <span class="c1"># print(network.generators.loc[generators][&#39;ramp_limit_down&#39;])</span>
+        <span class="c1"># print(network.generators.ramp_limit_down)</span>
+        <span class="c1"># model.resverdown = Var(within=PositiveReals)</span>
+        <span class="c1"># model.ReserveLimitDown = Constraint( model.resverdown &lt;= network.generators.loc[generators][&#39;ramp_limit_down&#39;]  )</span>
+
+       <span class="c1"># test = NumericConstant(list(generators), snapshots, domain)</span>
+
+        <span class="c1">#model.block = Constraint( network.model.generator_p &gt;= sum( 440 for i in range(0,2)  ))</span>
+        <span class="c1">#print(network.model.generator_p)</span>
+
+<div class="viewcode-block" id="Network.lopf"><a class="viewcode-back" href="../code.html#EconomicDispatcher.Network.lopf">[docs]</a>    <span class="k">def</span> <span class="nf">lopf</span><span class="p">(</span><span class="n">network</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Function that runs the optimization procces</span>
+
+<span class="sd">        Returns:</span>
+
+<span class="sd">        &#39;&#39;&#39;</span>
+
+
+
+
+        <span class="n">Network</span><span class="o">.</span><span class="n">Printer</span><span class="p">(</span><span class="n">network</span><span class="p">)</span>
+        <span class="n">network</span><span class="o">.</span><span class="n">lopf</span><span class="p">(</span><span class="n">solver_name</span><span class="o">=</span><span class="s2">&quot;glpk&quot;</span><span class="p">,</span> <span class="n">keep_files</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">solver_options</span><span class="o">=</span><span class="p">{},</span> <span class="n">formulation</span><span class="o">=</span><span class="s2">&quot;kirchhoff&quot;</span><span class="p">)</span>
+        <span class="c1">#,extra_functionality=Network.test</span>
+        <span class="c1">#print(&quot;Objective:&quot;, network.objective)</span>
+
+        <span class="c1"># network.model.dual = Suffix(direction=Suffix.IMPORT)</span>
+        <span class="c1"># print(network.model.balance.get_suffix_value(network.model.dual)  )</span>
+        <span class="n">Network</span><span class="o">.</span><span class="n">Printer</span><span class="p">(</span><span class="n">network</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;prices:&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">network</span><span class="o">.</span><span class="n">buses_t</span><span class="o">.</span><span class="n">marginal_price</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">Output</span><span class="o">.</span><span class="n">NetworkExport</span><span class="p">(</span><span class="n">network</span><span class="p">)</span></div></div>
+
+
+<span class="k">class</span> <span class="nc">Stochastic</span><span class="p">:</span>
+
+    <span class="k">def</span> <span class="nf">Main</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">ElectricLines</span><span class="p">,</span> <span class="n">ElectricLinesR</span><span class="p">,</span> <span class="n">ElectricLinesC</span><span class="p">,</span> <span class="n">ElectricLinesX</span><span class="p">,</span>
+                                                       <span class="n">Buss</span><span class="p">,</span> <span class="n">BussVnom</span><span class="p">,</span> <span class="n">BussType</span><span class="p">,</span> <span class="n">BussVset</span><span class="p">,</span> <span class="n">BussVmax</span><span class="p">,</span> <span class="n">BussVmin</span><span class="p">,</span>
+                                                       <span class="n">BussConnection</span><span class="p">,</span>
+                                                       <span class="n">ElectricLinesCcap</span><span class="p">,</span> <span class="n">ElectricLinesL</span><span class="p">,</span> <span class="n">ElectricLinesPhaseShift</span><span class="p">,</span>
+                                                       <span class="n">ElectricLinesAngMax</span><span class="p">,</span> <span class="n">ElectricLinesAngMin</span><span class="p">,</span> <span class="n">ElectricLinesLength</span><span class="p">,</span>
+                                                       <span class="n">ElectricLinesConnection</span><span class="p">,</span> <span class="n">ElectricLinesPmax</span><span class="p">,</span> <span class="n">Generators</span><span class="p">,</span>
+                                                       <span class="n">CostsOrdered</span><span class="p">,</span> <span class="n">PnomOrdered</span><span class="p">,</span> <span class="n">RampUp</span><span class="p">,</span> <span class="n">RampDown</span><span class="p">,</span> <span class="n">Effciency</span><span class="p">,</span>
+                                                       <span class="n">MinDownTime</span><span class="p">,</span> <span class="n">MaxDownTime</span><span class="p">,</span> <span class="n">PminOrdered</span><span class="p">,</span> <span class="n">GeneratorConnection</span><span class="p">,</span>
+                                                       <span class="n">PmaxOrdered</span><span class="p">,</span> <span class="n">StartUpCost</span><span class="p">,</span> <span class="n">ShutdownCost</span><span class="p">,</span> <span class="n">Initstatus</span><span class="p">,</span> <span class="n">CapCost</span><span class="p">,</span>
+                                                       <span class="n">PsetPoint</span><span class="p">,</span> <span class="n">QsetPoint</span><span class="p">,</span> <span class="n">Loads</span><span class="p">,</span> <span class="n">LoadP</span><span class="p">,</span> <span class="n">LoadTime</span><span class="p">,</span> <span class="n">LoadConnection</span><span class="p">,</span>
+                                                       <span class="n">options</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Main function for the Stochastic model, this function will load all the sub functions in correct order.</span>
+<span class="sd">        The Stochastic model lends most functions from the network model</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            solution</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Stochastic model started&quot;</span><span class="p">)</span>
+
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Calculate how many time stamps there are</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Initilize the pypsa network</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">network</span> <span class="o">=</span> <span class="n">pypsa</span><span class="o">.</span><span class="n">Network</span><span class="p">()</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Set time intervals pypsa counts them as &quot;snapshots&quot;</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Add the busses to the network</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">Network</span><span class="o">.</span><span class="n">BussesAdder</span><span class="p">(</span><span class="n">network</span><span class="p">,</span> <span class="n">Buss</span><span class="p">,</span> <span class="n">BussVnom</span><span class="p">,</span> <span class="n">BussVmax</span><span class="p">,</span> <span class="n">BussVmin</span><span class="p">,</span> <span class="n">BussVset</span><span class="p">,</span> <span class="n">BussType</span><span class="p">)</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Add the electric lines to the network</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">Network</span><span class="o">.</span><span class="n">ElectricLinesAdder</span><span class="p">(</span><span class="n">network</span><span class="p">,</span> <span class="n">ElectricLines</span><span class="p">,</span> <span class="n">ElectricLinesR</span><span class="p">,</span> <span class="n">ElectricLinesX</span><span class="p">,</span>  <span class="n">ElectricLinesCcap</span><span class="p">,</span>
+            <span class="n">ElectricLinesL</span><span class="p">,</span> <span class="n">ElectricLinesPhaseShift</span><span class="p">,</span> <span class="n">ElectricLinesAngMax</span><span class="p">,</span> <span class="n">ElectricLinesAngMin</span><span class="p">,</span>  <span class="n">ElectricLinesLength</span><span class="p">,</span>
+            <span class="n">ElectricLinesConnection</span> <span class="p">,</span><span class="n">ElectricLinesPmax</span><span class="p">)</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Add the generators to the network</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">Network</span><span class="o">.</span><span class="n">GeneratorAdder</span><span class="p">(</span><span class="n">network</span><span class="p">,</span> <span class="n">Generators</span><span class="p">,</span>  <span class="n">GeneratorConnection</span> <span class="p">,</span> <span class="n">PnomOrdered</span><span class="p">,</span> <span class="n">PminOrdered</span><span class="p">,</span> <span class="n">PmaxOrdered</span><span class="p">,</span>
+            <span class="n">CostsOrdered</span><span class="p">,</span> <span class="n">RampUp</span><span class="p">,</span> <span class="n">RampDown</span><span class="p">,</span> <span class="n">MaxDownTime</span><span class="p">,</span> <span class="n">MinDownTime</span><span class="p">,</span> <span class="n">Initstatus</span><span class="p">,</span> <span class="n">StartUpCost</span><span class="p">,</span> <span class="n">ShutdownCost</span><span class="p">,</span> <span class="n">Effciency</span><span class="p">,</span>
+            <span class="n">CapCost</span><span class="p">,</span> <span class="n">PsetPoint</span><span class="p">,</span>  <span class="n">QsetPoint</span><span class="p">)</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Add the loads to the network</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">Network</span><span class="o">.</span><span class="n">LoadAdder</span><span class="p">(</span><span class="n">network</span><span class="p">,</span> <span class="n">Loads</span><span class="p">,</span> <span class="n">LoadP</span><span class="p">,</span> <span class="n">LoadConnection</span><span class="p">)</span>
+
+        <span class="n">Network</span><span class="o">.</span><span class="n">Printer</span><span class="p">(</span><span class="n">network</span><span class="p">)</span>
+
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Run the optimalization</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">Network</span><span class="o">.</span><span class="n">lopf</span><span class="p">(</span><span class="n">network</span> <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">Constrains</span><span class="p">(</span><span class="n">network</span><span class="p">,</span><span class="n">snapshots</span><span class="p">):</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="n">network</span><span class="o">.</span><span class="n">model</span>
+        <span class="n">gen</span> <span class="o">=</span> <span class="n">network</span><span class="o">.</span><span class="n">generator</span><span class="o">.</span><span class="n">index</span>
+        <span class="n">sn</span> <span class="o">=</span> <span class="n">snapshots</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">ReserveLimitUp</span> <span class="o">=</span> <span class="n">Constraint</span><span class="p">(</span> <span class="mi">0</span> <span class="o">&gt;=</span> <span class="n">network</span><span class="o">.</span><span class="n">generator</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">gen</span><span class="p">,</span><span class="n">sn</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">network</span><span class="o">.</span><span class="n">generator</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">gen</span><span class="p">]</span><span class="o">.</span><span class="n">ramp_limit_up</span><span class="p">)</span>
+
+        <span class="n">model</span><span class="o">.</span><span class="n">ReserveLimitDown</span> <span class="o">=</span> <span class="n">Constraint</span><span class="p">(</span> <span class="mi">0</span> <span class="o">&gt;=</span> <span class="n">network</span><span class="o">.</span><span class="n">generator</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">gen</span><span class="p">,</span><span class="n">sn</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">network</span><span class="o">.</span><span class="n">generator</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">gen</span><span class="p">]</span><span class="o">.</span><span class="n">ramp_limit_down</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">lop</span><span class="p">(</span><span class="n">network</span><span class="p">):</span>
+        <span class="n">network</span><span class="o">.</span><span class="n">lopf</span><span class="p">(</span><span class="n">snapshots</span><span class="o">=</span><span class="n">network</span><span class="o">.</span><span class="n">snapshots</span><span class="p">,</span><span class="n">extra_functionality</span><span class="o">=</span><span class="n">Stochastic</span><span class="o">.</span><span class="n">Constrains</span><span class="p">,</span> <span class="n">keep_files</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">Output</span><span class="o">.</span><span class="n">NetworkExport</span><span class="p">(</span><span class="n">network</span><span class="p">)</span>
+
+
+    <span class="k">def</span> <span class="nf">Constrains</span><span class="p">(</span><span class="n">network</span><span class="p">,</span><span class="n">snapshots</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;test&quot;</span><span class="p">)</span>
+
+<span class="c1">#Pandas Data Framework from the frontend</span>
+<div class="viewcode-block" id="Dispatch"><a class="viewcode-back" href="../code.html#EconomicDispatcher.Dispatch">[docs]</a><span class="k">def</span> <span class="nf">Dispatch</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="o">*</span><span class="n">data</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+
+<span class="sd">    Args:</span>
+
+
+<span class="sd">    Returns: json file with the solutions of the model</span>
+
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Getting incoming data&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;dispatcher&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">model</span> <span class="o">==</span> <span class="s2">&quot;basic&quot;</span><span class="p">:</span>
+        <span class="n">Pmax</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">Pmin</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">CostsOrdered</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+        <span class="n">LoadP</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+
+        <span class="n">Simple</span><span class="o">.</span><span class="n">Main</span><span class="p">(</span><span class="n">Pmax</span><span class="p">,</span><span class="n">Pmin</span><span class="p">,</span><span class="n">CostsOrdered</span><span class="p">,</span><span class="n">LoadP</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Done , with basic model !&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">model</span> <span class="o">==</span> <span class="s2">&quot;network&quot;</span><span class="p">:</span>
+        <span class="n">ElectricLines</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">ElectricLinesR</span> <span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">ElectricLinesC</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+        <span class="n">ElectricLinesX</span> <span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+        <span class="n">Buss</span> <span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span>
+        <span class="n">BussVnom</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span>
+        <span class="n">BussType</span> <span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="mi">6</span><span class="p">]</span>
+        <span class="n">BussVset</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="mi">7</span><span class="p">]</span>
+        <span class="n">BussVmax</span> <span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="mi">8</span><span class="p">]</span>
+        <span class="n">BussVmin</span><span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="mi">9</span><span class="p">]</span>
+        <span class="n">BussConnection</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="mi">10</span><span class="p">]</span>
+        <span class="n">ElectricLinesCcap</span> <span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="mi">11</span><span class="p">]</span>
+        <span class="n">ElectricLinesL</span> <span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="mi">12</span><span class="p">]</span>
+        <span class="n">ElectricLinesPhaseShift</span> <span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="mi">13</span><span class="p">]</span>
+        <span class="n">ElectricLinesAngMax</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="mi">14</span><span class="p">]</span>
+        <span class="n">ElectricLinesAngMin</span> <span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="mi">15</span><span class="p">]</span>
+        <span class="n">ElectricLinesLength</span> <span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="mi">16</span><span class="p">]</span>
+        <span class="n">ElectricLinesConnection</span> <span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="mi">17</span><span class="p">]</span>
+        <span class="n">ElectricLinesPmax</span> <span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="mi">18</span><span class="p">]</span>
+        <span class="n">Generators</span> <span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="mi">19</span><span class="p">]</span>
+        <span class="n">CostsOrdered</span> <span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="mi">20</span><span class="p">]</span>
+        <span class="n">PnomOrdered</span> <span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="mi">21</span><span class="p">]</span>
+        <span class="n">RampUp</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="mi">22</span><span class="p">]</span>
+        <span class="n">RampDown</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="mi">23</span><span class="p">]</span>
+        <span class="n">Effciency</span> <span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="mi">24</span><span class="p">]</span>
+        <span class="n">MinDownTime</span> <span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="mi">25</span><span class="p">]</span>
+        <span class="n">MaxDownTime</span> <span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="mi">26</span><span class="p">]</span>
+        <span class="n">PminOrdered</span> <span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="mi">27</span><span class="p">]</span>
+        <span class="n">GeneratorConnection</span> <span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="mi">28</span><span class="p">]</span>
+        <span class="n">Time</span> <span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="mi">29</span><span class="p">]</span>
+        <span class="n">PowerBlocks</span> <span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="mi">30</span><span class="p">]</span>
+        <span class="n">PmaxOrdered</span> <span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="mi">31</span><span class="p">]</span>
+        <span class="n">StartUpCost</span> <span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="mi">32</span><span class="p">]</span>
+        <span class="n">ShutdownCost</span> <span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="mi">33</span><span class="p">]</span>
+        <span class="n">Initstatus</span> <span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="mi">34</span><span class="p">]</span>
+        <span class="n">CapCost</span> <span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="mi">35</span><span class="p">]</span>
+        <span class="n">PsetPoint</span> <span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="mi">36</span><span class="p">]</span>
+        <span class="n">QsetPoint</span> <span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="mi">37</span><span class="p">]</span>
+        <span class="n">Loads</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="mi">38</span><span class="p">]</span>
+        <span class="n">LoadP</span> <span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="mi">39</span><span class="p">]</span>
+        <span class="n">LoadQ</span> <span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="mi">40</span><span class="p">]</span>
+        <span class="n">LoadTime</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="mi">41</span><span class="p">]</span>
+        <span class="n">LoadConnection</span> <span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="mi">42</span><span class="p">]</span>
+        <span class="n">options</span> <span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="mi">43</span><span class="p">]</span>
+
+        <span class="n">StaticOutput</span><span class="p">,</span> <span class="n">VaryingOutput</span> <span class="o">=</span> <span class="n">Network</span><span class="o">.</span><span class="n">Main</span><span class="p">(</span><span class="n">model</span><span class="p">,</span>
+            <span class="n">ElectricLines</span> <span class="p">,</span> <span class="n">ElectricLinesR</span><span class="p">,</span> <span class="n">ElectricLinesC</span><span class="p">,</span> <span class="n">ElectricLinesX</span><span class="p">,</span> <span class="n">Buss</span><span class="p">,</span> <span class="n">BussVnom</span><span class="p">,</span> <span class="n">BussType</span><span class="p">,</span> <span class="n">BussVset</span><span class="p">,</span> <span class="n">BussVmax</span><span class="p">,</span> <span class="n">BussVmin</span><span class="p">,</span> <span class="n">BussConnection</span> <span class="p">,</span>
+            <span class="n">ElectricLinesCcap</span><span class="p">,</span> <span class="n">ElectricLinesL</span><span class="p">,</span> <span class="n">ElectricLinesPhaseShift</span><span class="p">,</span> <span class="n">ElectricLinesAngMax</span><span class="p">,</span> <span class="n">ElectricLinesAngMin</span><span class="p">,</span> <span class="n">ElectricLinesLength</span><span class="p">,</span> <span class="n">ElectricLinesConnection</span> <span class="p">,</span><span class="n">ElectricLinesPmax</span><span class="p">,</span> <span class="n">Generators</span><span class="p">,</span>
+            <span class="n">CostsOrdered</span><span class="p">,</span> <span class="n">PnomOrdered</span><span class="p">,</span> <span class="n">RampUp</span><span class="p">,</span> <span class="n">RampDown</span><span class="p">,</span> <span class="n">Effciency</span><span class="p">,</span> <span class="n">MinDownTime</span><span class="p">,</span> <span class="n">MaxDownTime</span><span class="p">,</span>  <span class="n">PminOrdered</span><span class="p">,</span> <span class="n">GeneratorConnection</span> <span class="p">,</span> <span class="n">Time</span><span class="p">,</span>
+            <span class="n">PowerBlocks</span><span class="p">,</span> <span class="n">PmaxOrdered</span><span class="p">,</span> <span class="n">StartUpCost</span><span class="p">,</span> <span class="n">ShutdownCost</span><span class="p">,</span> <span class="n">Initstatus</span><span class="p">,</span> <span class="n">CapCost</span><span class="p">,</span> <span class="n">PsetPoint</span><span class="p">,</span>  <span class="n">QsetPoint</span><span class="p">,</span> <span class="n">Loads</span><span class="p">,</span> <span class="n">LoadP</span><span class="p">,</span><span class="n">LoadQ</span><span class="p">,</span> <span class="n">LoadTime</span><span class="p">,</span> <span class="n">LoadConnection</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Failed the network model&quot;</span><span class="p">)</span>
+        <span class="n">status</span> <span class="o">=</span> <span class="s2">&quot;ok&quot;</span>
+
+        <span class="k">return</span> <span class="n">StaticOutput</span><span class="p">,</span> <span class="n">VaryingOutput</span><span class="p">,</span><span class="n">status</span>
+    <span class="k">if</span> <span class="n">model</span> <span class="o">==</span> <span class="s2">&quot;stochastic&quot;</span><span class="p">:</span>
+        <span class="n">ElectricLines</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">ElectricLinesR</span> <span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">ElectricLinesC</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+        <span class="n">ElectricLinesX</span> <span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+        <span class="n">Buss</span> <span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span>
+        <span class="n">BussVnom</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span>
+        <span class="n">BussType</span> <span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="mi">6</span><span class="p">]</span>
+        <span class="n">BussVset</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="mi">7</span><span class="p">]</span>
+        <span class="n">BussVmax</span> <span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="mi">8</span><span class="p">]</span>
+        <span class="n">BussVmin</span><span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="mi">9</span><span class="p">]</span>
+        <span class="n">BussConnection</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="mi">10</span><span class="p">]</span>
+        <span class="n">ElectricLinesCcap</span> <span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="mi">11</span><span class="p">]</span>
+        <span class="n">ElectricLinesL</span> <span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="mi">12</span><span class="p">]</span>
+        <span class="n">ElectricLinesPhaseShift</span> <span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="mi">13</span><span class="p">]</span>
+        <span class="n">ElectricLinesAngMax</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="mi">14</span><span class="p">]</span>
+        <span class="n">ElectricLinesAngMin</span> <span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="mi">15</span><span class="p">]</span>
+        <span class="n">ElectricLinesLength</span> <span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="mi">16</span><span class="p">]</span>
+        <span class="n">ElectricLinesConnection</span> <span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="mi">17</span><span class="p">]</span>
+        <span class="n">ElectricLinesPmax</span> <span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="mi">18</span><span class="p">]</span>
+        <span class="n">Generators</span> <span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="mi">19</span><span class="p">]</span>
+        <span class="n">CostsOrdered</span> <span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="mi">20</span><span class="p">]</span>
+        <span class="n">PnomOrdered</span> <span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="mi">21</span><span class="p">]</span>
+        <span class="n">RampUp</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="mi">22</span><span class="p">]</span>
+        <span class="n">RampDown</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="mi">23</span><span class="p">]</span>
+        <span class="n">Effciency</span> <span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="mi">24</span><span class="p">]</span>
+        <span class="n">MinDownTime</span> <span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="mi">25</span><span class="p">]</span>
+        <span class="n">MaxDownTime</span> <span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="mi">26</span><span class="p">]</span>
+        <span class="n">PminOrdered</span> <span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="mi">27</span><span class="p">]</span>
+        <span class="n">GeneratorConnection</span> <span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="mi">28</span><span class="p">]</span>
+        <span class="n">Time</span> <span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="mi">29</span><span class="p">]</span>
+        <span class="n">PowerBlocks</span> <span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="mi">30</span><span class="p">]</span>
+        <span class="n">PmaxOrdered</span> <span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="mi">31</span><span class="p">]</span>
+        <span class="n">StartUpCost</span> <span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="mi">32</span><span class="p">]</span>
+        <span class="n">ShutdownCost</span> <span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="mi">33</span><span class="p">]</span>
+        <span class="n">Initstatus</span> <span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="mi">34</span><span class="p">]</span>
+        <span class="n">CapCost</span> <span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="mi">35</span><span class="p">]</span>
+        <span class="n">PsetPoint</span> <span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="mi">36</span><span class="p">]</span>
+        <span class="n">QsetPoint</span> <span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="mi">37</span><span class="p">]</span>
+        <span class="n">Loads</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="mi">38</span><span class="p">]</span>
+        <span class="n">LoadP</span> <span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="mi">39</span><span class="p">]</span>
+        <span class="n">LoadQ</span> <span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="mi">40</span><span class="p">]</span>
+        <span class="n">LoadTime</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="mi">41</span><span class="p">]</span>
+        <span class="n">LoadConnection</span> <span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="mi">42</span><span class="p">]</span>
+        <span class="n">options</span> <span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="mi">43</span><span class="p">]</span>
+        <span class="n">Stochastic</span><span class="o">.</span><span class="n">Main</span><span class="p">(</span><span class="n">model</span><span class="p">,</span>                         <span class="n">ElectricLines</span><span class="p">,</span> <span class="n">ElectricLinesR</span><span class="p">,</span> <span class="n">ElectricLinesC</span><span class="p">,</span> <span class="n">ElectricLinesX</span><span class="p">,</span>
+                                                       <span class="n">Buss</span><span class="p">,</span> <span class="n">BussVnom</span><span class="p">,</span> <span class="n">BussType</span><span class="p">,</span> <span class="n">BussVset</span><span class="p">,</span> <span class="n">BussVmax</span><span class="p">,</span> <span class="n">BussVmin</span><span class="p">,</span>
+                                                       <span class="n">BussConnection</span><span class="p">,</span>
+                                                       <span class="n">ElectricLinesCcap</span><span class="p">,</span> <span class="n">ElectricLinesL</span><span class="p">,</span> <span class="n">ElectricLinesPhaseShift</span><span class="p">,</span>
+                                                       <span class="n">ElectricLinesAngMax</span><span class="p">,</span> <span class="n">ElectricLinesAngMin</span><span class="p">,</span> <span class="n">ElectricLinesLength</span><span class="p">,</span>
+                                                       <span class="n">ElectricLinesConnection</span><span class="p">,</span> <span class="n">ElectricLinesPmax</span><span class="p">,</span> <span class="n">Generators</span><span class="p">,</span>
+                                                       <span class="n">CostsOrdered</span><span class="p">,</span> <span class="n">PnomOrdered</span><span class="p">,</span> <span class="n">RampUp</span><span class="p">,</span> <span class="n">RampDown</span><span class="p">,</span> <span class="n">Effciency</span><span class="p">,</span>
+                                                       <span class="n">MinDownTime</span><span class="p">,</span> <span class="n">MaxDownTime</span><span class="p">,</span> <span class="n">PminOrdered</span><span class="p">,</span> <span class="n">GeneratorConnection</span><span class="p">,</span>
+                                                       <span class="n">PmaxOrdered</span><span class="p">,</span> <span class="n">StartUpCost</span><span class="p">,</span> <span class="n">ShutdownCost</span><span class="p">,</span> <span class="n">Initstatus</span><span class="p">,</span> <span class="n">CapCost</span><span class="p">,</span>
+                                                       <span class="n">PsetPoint</span><span class="p">,</span> <span class="n">QsetPoint</span><span class="p">,</span> <span class="n">Loads</span><span class="p">,</span> <span class="n">LoadP</span><span class="p">,</span> <span class="n">LoadTime</span><span class="p">,</span> <span class="n">LoadConnection</span><span class="p">,</span>
+                                                       <span class="n">options</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Done , with stochastic model !&quot;</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, Martyn van Dijke & Yuanlong Li .
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,7 @@
+Django==1.10.5
+matplotlib==1.5.1
+more_itertools==2.5.0
+numpy==1.11.0
+pandas==0.19.2
+Pyomo==5.1.1
+pypsa==0.8.0

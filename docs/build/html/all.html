@@ -1,0 +1,161 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Explanation of front and backend &#8212; Web App For Day Ahead Market Clearing 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Elementary model" href="simple.html" />
+    <link rel="prev" title="Tutorial" href="tut.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="explanation-of-front-and-backend">
+<h1>Explanation of front and backend<a class="headerlink" href="#explanation-of-front-and-backend" title="Permalink to this headline">¶</a></h1>
+<p>This section will dive into the intergration of the frontend and backend of the overall system.</p>
+<div class="section" id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<p>The figure below will provide an overview of the system hierachy, this figure also indicates how the diffrent systems (Python &amp; Node.Js) are interconnected and operate.
+Using this figure the overall structure of the web application should become clear.</p>
+<div class="align-center figure">
+<a class="reference internal image-reference" href="_images/overview.png"><img alt="Hierachy overview" src="_images/overview.png" style="height: 600px;" /></a>
+</div>
+</div>
+<div class="section" id="backend-pyton">
+<h2>Backend Pyton<a class="headerlink" href="#backend-pyton" title="Permalink to this headline">¶</a></h2>
+<p>The backend is writen in Python 3.5 and may be digisted further.
+It consist as seen in the overview of two main part&#8217;s the Django web server and the simple &amp; network case.
+The simple and network case are programmed in one &#8216;EconomicDispatcher&#8217;.</p>
+<div class="section" id="django">
+<h3>Django<a class="headerlink" href="#django" title="Permalink to this headline">¶</a></h3>
+<p>Django ensure that all html request are handled well, and is a web server framework.
+Django process the html requested and handles the data transfer from the front end to the backend and vice versa.
+Django also provides the simple session based storage.
+All html request are first handled by Django, and if an action is coupled to the html request Django will initiate that action.</p>
+<div class="align-center figure">
+<a class="reference internal image-reference" href="_images/django.png"><img alt="Hierachy overview of django backend" src="_images/django.png" style="height: 600px;" /></a>
+</div>
+</div>
+<div class="section" id="economicdispatcher">
+<h3>EconomicDispatcher<a class="headerlink" href="#economicdispatcher" title="Permalink to this headline">¶</a></h3>
+<p>The inner workings of the &#8216;EconomicDispatcher&#8217; may be seen in this figure
+An more in depth look into the simple and network case is made in ..</p>
+<div class="align-center figure">
+<a class="reference internal image-reference" href="_images/EconomicDispatcher.png"><img alt="Hierachy overview" src="_images/EconomicDispatcher.png" style="width: 800px;" /></a>
+</div>
+</div>
+</div>
+<div class="section" id="frontend-node-js">
+<h2>Frontend Node.Js<a class="headerlink" href="#frontend-node-js" title="Permalink to this headline">¶</a></h2>
+<div class="align-center figure">
+<a class="reference internal image-reference" href="_images/jsoverview.png"><img alt="Hierachy overview" src="_images/jsoverview.png" style="width: 800px;" /></a>
+</div>
+<div class="align-center figure">
+<a class="reference internal image-reference" href="_images/Toolbox.png"><img alt="Hierachy overview" src="_images/Toolbox.png" style="width: 800px;" /></a>
+</div>
+<div class="align-center figure">
+<a class="reference internal image-reference" href="_images/Workbench.png"><img alt="Hierachy overview" src="_images/Workbench.png" style="width: 800px;" /></a>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Explanation of front and backend</a><ul>
+<li><a class="reference internal" href="#overview">Overview</a></li>
+<li><a class="reference internal" href="#backend-pyton">Backend Pyton</a><ul>
+<li><a class="reference internal" href="#django">Django</a></li>
+<li><a class="reference internal" href="#economicdispatcher">EconomicDispatcher</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#frontend-node-js">Frontend Node.Js</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="tut.html" title="previous chapter">Tutorial</a></li>
+      <li>Next: <a href="simple.html" title="next chapter">Elementary model</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/all.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, Martyn van Dijke & Yuanlong Li .
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="_sources/all.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

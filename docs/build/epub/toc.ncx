@@ -1,0 +1,230 @@
+<?xml version="1.0"?>
+<ncx version="2005-1" xmlns="http://www.daisy.org/z3986/2005/ncx/">
+  <head>
+    <meta name="dtb:uid" content="unknown"/>
+    <meta name="dtb:depth" content="3"/>
+    <meta name="dtb:totalPageCount" content="0"/>
+    <meta name="dtb:maxPageNumber" content="0"/>
+  </head>
+  <docTitle>
+    <text>Web App For Day Ahead Market Clearing 0.1 documentation</text>
+  </docTitle>
+  <navMap>
+    <navPoint id="navPoint30" playOrder="1">
+      <navLabel>
+        <text>Welcome to Web App Day Ahead Clearing&#39;s documentation!</text>
+      </navLabel>
+      <content src="index.xhtml" />
+    </navPoint>
+    <navPoint id="navPoint31" playOrder="2">
+      <navLabel>
+        <text>Installation</text>
+      </navLabel>
+      <content src="install.xhtml" />
+      <navPoint id="navPoint32" playOrder="2">
+        <navLabel>
+          <text>Installation</text>
+        </navLabel>
+        <content src="install.xhtml" />
+      </navPoint>
+      <navPoint id="navPoint33" playOrder="3">
+        <navLabel>
+          <text>Getting Python</text>
+        </navLabel>
+        <content src="install.xhtml#getting-python" />
+      </navPoint>
+      <navPoint id="navPoint34" playOrder="4">
+        <navLabel>
+          <text>Getting a solver for linear optimisation</text>
+        </navLabel>
+        <content src="install.xhtml#getting-a-solver-for-linear-optimisation" />
+      </navPoint>
+      <navPoint id="navPoint35" playOrder="5">
+        <navLabel>
+          <text>Installing the backend of the web app</text>
+        </navLabel>
+        <content src="install.xhtml#installing-the-backend-of-the-web-app" />
+      </navPoint>
+      <navPoint id="navPoint36" playOrder="6">
+        <navLabel>
+          <text>Backend dependencies</text>
+        </navLabel>
+        <content src="install.xhtml#backend-dependencies" />
+      </navPoint>
+      <navPoint id="navPoint37" playOrder="7">
+        <navLabel>
+          <text>Getting Nodejs</text>
+        </navLabel>
+        <content src="install.xhtml#getting-nodejs" />
+      </navPoint>
+    </navPoint>
+    <navPoint id="navPoint38" playOrder="8">
+      <navLabel>
+        <text>Tutorial</text>
+      </navLabel>
+      <content src="tut.xhtml" />
+      <navPoint id="navPoint39" playOrder="8">
+        <navLabel>
+          <text>Tutorial</text>
+        </navLabel>
+        <content src="tut.xhtml" />
+      </navPoint>
+      <navPoint id="navPoint40" playOrder="9">
+        <navLabel>
+          <text>Getting Started</text>
+        </navLabel>
+        <content src="tut.xhtml#getting-started" />
+      </navPoint>
+      <navPoint id="navPoint41" playOrder="10">
+        <navLabel>
+          <text>What it can do</text>
+        </navLabel>
+        <content src="tut.xhtml#what-it-can-do" />
+        <navPoint id="navPoint42" playOrder="10">
+          <navLabel>
+            <text>What it can do</text>
+          </navLabel>
+          <content src="tut.xhtml#what-it-can-do" />
+        </navPoint>
+        <navPoint id="navPoint43" playOrder="11">
+          <navLabel>
+            <text>Simple</text>
+          </navLabel>
+          <content src="tut.xhtml#simple" />
+        </navPoint>
+        <navPoint id="navPoint44" playOrder="12">
+          <navLabel>
+            <text>Network</text>
+          </navLabel>
+          <content src="tut.xhtml#network" />
+        </navPoint>
+      </navPoint>
+      <navPoint id="navPoint45" playOrder="13">
+        <navLabel>
+          <text>Using the web application</text>
+        </navLabel>
+        <content src="tut.xhtml#using-the-web-application" />
+      </navPoint>
+    </navPoint>
+    <navPoint id="navPoint46" playOrder="14">
+      <navLabel>
+        <text>Explanation of front and backend</text>
+      </navLabel>
+      <content src="all.xhtml" />
+      <navPoint id="navPoint47" playOrder="14">
+        <navLabel>
+          <text>Explanation of front and backend</text>
+        </navLabel>
+        <content src="all.xhtml" />
+      </navPoint>
+      <navPoint id="navPoint48" playOrder="15">
+        <navLabel>
+          <text>Overview</text>
+        </navLabel>
+        <content src="all.xhtml#overview" />
+      </navPoint>
+      <navPoint id="navPoint49" playOrder="16">
+        <navLabel>
+          <text>Backend Pyton</text>
+        </navLabel>
+        <content src="all.xhtml#backend-pyton" />
+        <navPoint id="navPoint50" playOrder="16">
+          <navLabel>
+            <text>Backend Pyton</text>
+          </navLabel>
+          <content src="all.xhtml#backend-pyton" />
+        </navPoint>
+        <navPoint id="navPoint51" playOrder="17">
+          <navLabel>
+            <text>Django</text>
+          </navLabel>
+          <content src="all.xhtml#django" />
+        </navPoint>
+        <navPoint id="navPoint52" playOrder="18">
+          <navLabel>
+            <text>EconomicDispatcher</text>
+          </navLabel>
+          <content src="all.xhtml#economicdispatcher" />
+        </navPoint>
+      </navPoint>
+      <navPoint id="navPoint53" playOrder="19">
+        <navLabel>
+          <text>Frontend Node.Js</text>
+        </navLabel>
+        <content src="all.xhtml#frontend-node-js" />
+      </navPoint>
+    </navPoint>
+    <navPoint id="navPoint54" playOrder="20">
+      <navLabel>
+        <text>Elementary model</text>
+      </navLabel>
+      <content src="simple.xhtml" />
+    </navPoint>
+    <navPoint id="navPoint55" playOrder="21">
+      <navLabel>
+        <text>Network model</text>
+      </navLabel>
+      <content src="network.xhtml" />
+      <navPoint id="navPoint56" playOrder="21">
+        <navLabel>
+          <text>Network model</text>
+        </navLabel>
+        <content src="network.xhtml" />
+      </navPoint>
+      <navPoint id="navPoint57" playOrder="22">
+        <navLabel>
+          <text>Components</text>
+        </navLabel>
+        <content src="network.xhtml#components" />
+        <navPoint id="navPoint58" playOrder="22">
+          <navLabel>
+            <text>Components</text>
+          </navLabel>
+          <content src="network.xhtml#components" />
+        </navPoint>
+        <navPoint id="navPoint59" playOrder="23">
+          <navLabel>
+            <text>Network</text>
+          </navLabel>
+          <content src="network.xhtml#network" />
+        </navPoint>
+        <navPoint id="navPoint60" playOrder="24">
+          <navLabel>
+            <text>Bus</text>
+          </navLabel>
+          <content src="network.xhtml#bus" />
+        </navPoint>
+        <navPoint id="navPoint61" playOrder="25">
+          <navLabel>
+            <text>Generator</text>
+          </navLabel>
+          <content src="network.xhtml#generator" />
+        </navPoint>
+        <navPoint id="navPoint62" playOrder="26">
+          <navLabel>
+            <text>Lines</text>
+          </navLabel>
+          <content src="network.xhtml#lines" />
+        </navPoint>
+        <navPoint id="navPoint63" playOrder="27">
+          <navLabel>
+            <text>Loads</text>
+          </navLabel>
+          <content src="network.xhtml#loads" />
+        </navPoint>
+      </navPoint>
+    </navPoint>
+    <navPoint id="navPoint64" playOrder="28">
+      <navLabel>
+        <text>Experimental Stand alone version</text>
+      </navLabel>
+      <content src="standalone.xhtml" />
+    </navPoint>
+    <navPoint id="navPoint65" playOrder="29">
+      <navLabel>
+        <text>Code Documentation</text>
+      </navLabel>
+      <content src="code.xhtml" />
+    </navPoint>
+  </navMap>
+</ncx>

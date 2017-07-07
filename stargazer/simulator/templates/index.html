@@ -1,0 +1,96 @@
+{% load render_bundle from webpack_loader %}
+
+<!DOCTYPE html>
+<html>
+
+<head>
+
+  <meta charset="UTF-8">
+  <title>Stargazer</title>
+  <link rel="stylesheet" href="/static/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/static/css/grid-layout.css">
+  <link rel="stylesheet" href="/static/css/resizable.css">
+  <link rel="stylesheet" href="/static/css/material.css">
+  <link rel="stylesheet" href="/static/css/split.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.7.1/katex.min.css" integrity="sha384-wITovz90syo1dJWVh32uuETPVEtGigN07tkttEqPv+uR2SE/mbQcG7ATL28aI9H0"
+    crossorigin="anonymous">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.7.1/katex.min.js" integrity="sha384-/y1Nn9+QQAipbNQWU65krzJralCnuOasHncUFXGkdwntGeSvQicrYkiUBwsgUqc1"
+    crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.10.1/xlsx.full.min.js"></script>
+  <link rel="stylesheet" href="/static/css/bootstrap-slider.min.css" />
+  <link rel="stylesheet" href="/static/css/handsontable.full.css" />
+  <script src="/static/css/mdl/material.js"></script>
+  <script src="/static/js/FileSaver.min.txt"></script>
+  <link rel="icon" href="/static/images/favicon.ico">
+  <style>
+     ::-webkit-scrollbar {
+      width: 10px;
+      height: 10px;
+    }
+
+     ::-webkit-scrollbar-track-piece {
+      background-color:white;
+    }
+
+     ::-webkit-scrollbar-thumb:vertical {
+      height: 30px;
+      background-color: #3a3f44;
+    }
+
+         ::-webkit-scrollbar-thumb:horizontal {
+      height: 30px;
+      background-color: #3a3f44;
+    }
+
+    .panel-heading {
+      position: fixed;
+      width: 100%;
+    }
+
+    #loading-logo {
+      position: fixed;
+      top: 35%;
+      left: 50%;
+    }
+
+    #over{
+        position: fixed;
+      top: 40%;
+      left: 50%;
+    }
+    #text{
+         position: fixed;
+      top: 50%;
+      left: 45%;
+    }
+    #loading-text {
+      position: fixed;
+      top: 50%;
+      left: 43%;
+    }
+
+    .small_tab > ul> li >a {
+      padding-left: 1;
+      padding-right: 1;
+    }
+    .xsmall_tab > ul> li >a {
+      padding: 0;
+    }
+  </style>
+</head>
+
+<body>
+
+<div id="over" style="position:absolute; width:100%; height:100%">
+	<img src="/static/images/logo.png">
+</div>
+<div id="text">
+    <h1>Stargazer</h1>
+</div>
+
+
+  <div id="react-app" /> {% render_bundle 'main' %}
+
+</body>
+
+</html>

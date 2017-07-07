@@ -1,0 +1,3 @@
+{
+    "boardData": "{\"grids\":[{\"id\":0,\"parameter\":{\"resistance\":0,\"reactance\":0,\"capacitance\":0,\"current_max\":0,\"power_max\":0}}],\"buses\":[],\"power_plants\":[{\"icon\":\"/static/images/PowerPlant.svg\",\"id\":0,\"parameter\":{\"power\":[],\"cost\":[],\"power_nominal\":1,\"ramp_up\":0,\"ramp_down\":0,\"efficiency\":100},\"flow_to\":[0]}],\"consumers\":[{\"icon\":\"/static/images/Consumer.svg\",\"parameter\":{\"time\":[],\"load\":[]},\"id\":1,\"flow_from\":[0]}]}"
+}

@@ -1,0 +1,958 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Network model &#8212; Web App For Day Ahead Market Clearing 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Experimental Stand alone version" href="standalone.html" />
+    <link rel="prev" title="Elementary model" href="simple.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="network-model">
+<h1>Network model<a class="headerlink" href="#network-model" title="Permalink to this headline">¶</a></h1>
+<p>The network model is largely implemented in PyPSA it is recommend to read the full PyPSA documentation first.
+Wich can be found at ..</p>
+<div class="section" id="components">
+<h2>Components<a class="headerlink" href="#components" title="Permalink to this headline">¶</a></h2>
+<p>Below you will find the components used in the web application, this list is a narrow sub list of the PyPSA documentation</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="33%" />
+<col width="33%" />
+<col width="33%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">component</th>
+<th class="head">list_name</th>
+<th class="head">description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>Network</td>
+<td>networks</td>
+<td>Container for all components and functions which act upon the whole network.</td>
+</tr>
+<tr class="row-odd"><td>Bus</td>
+<td>buses</td>
+<td>Electrically fundamental node where x-port objects attach.</td>
+</tr>
+<tr class="row-even"><td>Line</td>
+<td>lines</td>
+<td>Lines include distribution and transmission lines, overhead lines and cables.</td>
+</tr>
+<tr class="row-odd"><td>LineType</td>
+<td>line_types</td>
+<td>Standard line types with per length values for impedances.</td>
+</tr>
+<tr class="row-even"><td>Link</td>
+<td>links</td>
+<td>Link between two buses with controllable active power - can be used for a transport power flow model OR as a simplified version of point-to-point DC connection OR as a lossy energy converter. NB: for a lossless bi-directional HVDC or transport link, set p_min_pu = -1 and efficiency = 1. NB: It is assumed that the links neither produce nor consume reactive power.</td>
+</tr>
+<tr class="row-odd"><td>Load</td>
+<td>loads</td>
+<td>PQ power consumer.</td>
+</tr>
+<tr class="row-even"><td>Generator</td>
+<td>generators</td>
+<td>Power generator.</td>
+</tr>
+</tbody>
+</table>
+<div class="section" id="network">
+<h3>Network<a class="headerlink" href="#network" title="Permalink to this headline">¶</a></h3>
+<p>The <code class="docutils literal"><span class="pre">Network</span></code> is the overall container for all components.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="17%" />
+<col width="17%" />
+<col width="17%" />
+<col width="17%" />
+<col width="17%" />
+<col width="17%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">attribute</th>
+<th class="head">type</th>
+<th class="head">unit</th>
+<th class="head">default</th>
+<th class="head">description</th>
+<th class="head">status</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>name</td>
+<td>string</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>Unique name</td>
+<td>Input (required)</td>
+</tr>
+<tr class="row-odd"><td>snapshots</td>
+<td>list or pandas.Index</td>
+<td>n/a</td>
+<td>[&#8220;now&#8221;]</td>
+<td>List of snapshots or time steps. All time-dependent series quantities are indexed by <code class="docutils literal"><span class="pre">network.snapshots</span></code>. To reset the snapshots, call <code class="docutils literal"><span class="pre">network.set_snapshots(new_snapshots)</span></code>.</td>
+<td>Input (optional)</td>
+</tr>
+<tr class="row-even"><td>buses</td>
+<td>pandas.DataFrame</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>All static bus information compiled by PyPSA from inputs. Index is bus names, columns are bus attributes.</td>
+<td>Output</td>
+</tr>
+<tr class="row-odd"><td>buses_t</td>
+<td>dictionary of pandas.DataFrames</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>All time-dependent bus information compiled by PyPSA from inputs. Dictionary keys are time-dependent series attributes, index is network.snapshots, columns are bus names.</td>
+<td>Output</td>
+</tr>
+<tr class="row-even"><td>lines</td>
+<td>pandas.DataFrame</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>All static line information compiled by PyPSA from inputs. Index is line names, columns are line attributes.</td>
+<td>Output</td>
+</tr>
+<tr class="row-odd"><td>lines_t</td>
+<td>dictionary of pandas.DataFrames</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>All time-dependent line information compiled by PyPSA from inputs. Dictionary keys are time-dependent series attributes, index is network.snapshots, columns are line names.</td>
+<td>Output</td>
+</tr>
+<tr class="row-even"><td>components</td>
+<td>pandas.DataFrame</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>For each component type (buses, lines, etc.): static component information compiled by PyPSA from inputs. Index is component names, columns are component attributes.</td>
+<td>Output</td>
+</tr>
+<tr class="row-odd"><td>components_t</td>
+<td>dictionary of pandas.DataFrames</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>For each component type (buses, lines, etc.): time-dependent component information compiled by PyPSA from inputs. Dictionary keys are time-dependent series attributes, index is network.snapshots, columns are component names.</td>
+<td>Output</td>
+</tr>
+<tr class="row-even"><td>branches()</td>
+<td>pandas.DataFrame</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>Dynamically generated concatenation of branch DataFrames: network.lines, network.transformers and network.links. Note that this is a copy and therefore changing entries will NOT update the original.</td>
+<td>Output</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="bus">
+<h3>Bus<a class="headerlink" href="#bus" title="Permalink to this headline">¶</a></h3>
+<p>The bus is the fundamental node of the network, to which components
+like loads, generators and transmission lines attach. It enforces
+energy conservation for all elements feeding in and out of it  (i.e. like Kirchhoff&#8217;s Current Law).</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="17%" />
+<col width="17%" />
+<col width="17%" />
+<col width="17%" />
+<col width="17%" />
+<col width="17%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">attribute</th>
+<th class="head">type</th>
+<th class="head">unit</th>
+<th class="head">default</th>
+<th class="head">description</th>
+<th class="head">status</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>name</td>
+<td>string</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>Unique name</td>
+<td>Input (required)</td>
+</tr>
+<tr class="row-odd"><td>v_nom</td>
+<td>float</td>
+<td>kV</td>
+<td><ol class="first last arabic simple">
+<li></li>
+</ol>
+</td>
+<td>Nominal voltage</td>
+<td>Input (optional)</td>
+</tr>
+<tr class="row-even"><td>type</td>
+<td>string</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>Placeholder for bus type. Not yet implemented.</td>
+<td>Input (optional)</td>
+</tr>
+<tr class="row-odd"><td>v_mag_pu_set</td>
+<td>static or series</td>
+<td>per unit</td>
+<td><ol class="first last arabic simple">
+<li></li>
+</ol>
+</td>
+<td>Voltage magnitude set point, per unit of v_nom.</td>
+<td>Input (optional)</td>
+</tr>
+<tr class="row-even"><td>v_mag_pu_min</td>
+<td>float</td>
+<td>per unit</td>
+<td><ol class="first last arabic simple" start="0">
+<li></li>
+</ol>
+</td>
+<td>Minimum desired voltage, per unit of v_nom</td>
+<td>Input (optional)</td>
+</tr>
+<tr class="row-odd"><td>v_mag_pu_max</td>
+<td>float</td>
+<td>per unit</td>
+<td>inf</td>
+<td>Maximum desired voltage, per unit of v_nom</td>
+<td>Input (optional)</td>
+</tr>
+<tr class="row-even"><td>control</td>
+<td>string</td>
+<td>n/a</td>
+<td>PQ</td>
+<td>P,Q,V control strategy for PF, must be &#8220;PQ&#8221;, &#8220;PV&#8221; or &#8220;Slack&#8221;. Note that this attribute is an output inherited from the controls of the generators attached to the bus; setting it directly on the bus will not have any effect.</td>
+<td>Output</td>
+</tr>
+<tr class="row-odd"><td>sub_network</td>
+<td>string</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>Name of connected sub-network to which bus belongs. This attribute is set by PyPSA in the function network.determine_network_topology(); do not set it directly by hand.</td>
+<td>Output</td>
+</tr>
+<tr class="row-even"><td>p</td>
+<td>series</td>
+<td>MW</td>
+<td><ol class="first last arabic simple" start="0">
+<li></li>
+</ol>
+</td>
+<td>active power at bus (positive if net generation at bus)</td>
+<td>Output</td>
+</tr>
+<tr class="row-odd"><td>q</td>
+<td>series</td>
+<td>MVar</td>
+<td><ol class="first last arabic simple" start="0">
+<li></li>
+</ol>
+</td>
+<td>reactive power (positive if net generation at bus)</td>
+<td>Output</td>
+</tr>
+<tr class="row-even"><td>v_mag_pu</td>
+<td>series</td>
+<td>per unit</td>
+<td><ol class="first last arabic simple">
+<li></li>
+</ol>
+</td>
+<td>Voltage magnitude, per unit of v_nom</td>
+<td>Output</td>
+</tr>
+<tr class="row-odd"><td>v_ang</td>
+<td>series</td>
+<td>radians</td>
+<td><ol class="first last arabic simple" start="0">
+<li></li>
+</ol>
+</td>
+<td>Voltage angle</td>
+<td>Output</td>
+</tr>
+<tr class="row-even"><td>marginal_price</td>
+<td>series</td>
+<td>currency</td>
+<td><ol class="first last arabic simple" start="0">
+<li></li>
+</ol>
+</td>
+<td>Locational marginal price from LOPF from power balance constraint</td>
+<td>Output</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="generator">
+<h3>Generator<a class="headerlink" href="#generator" title="Permalink to this headline">¶</a></h3>
+<table border="1" class="docutils">
+<colgroup>
+<col width="17%" />
+<col width="17%" />
+<col width="17%" />
+<col width="17%" />
+<col width="17%" />
+<col width="17%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">attribute</th>
+<th class="head">type</th>
+<th class="head">unit</th>
+<th class="head">default</th>
+<th class="head">description</th>
+<th class="head">status</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>name</td>
+<td>string</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>Unique name</td>
+<td>Input (required)</td>
+</tr>
+<tr class="row-odd"><td>bus</td>
+<td>string</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>name of bus to which generator is attached</td>
+<td>Input (required)</td>
+</tr>
+<tr class="row-even"><td>control</td>
+<td>string</td>
+<td>n/a</td>
+<td>PQ</td>
+<td>P,Q,V control strategy for PF, must be &#8220;PQ&#8221;, &#8220;PV&#8221; or &#8220;Slack&#8221;.</td>
+<td>Input (optional)</td>
+</tr>
+<tr class="row-odd"><td>p_nom</td>
+<td>float</td>
+<td>MW</td>
+<td><ol class="first last arabic simple" start="0">
+<li></li>
+</ol>
+</td>
+<td>Nominal power for limits in OPF.</td>
+<td>Input (optional)</td>
+</tr>
+<tr class="row-even"><td>p_min_pu</td>
+<td>static or series</td>
+<td>per unit</td>
+<td><ol class="first last arabic simple" start="0">
+<li></li>
+</ol>
+</td>
+<td>The minimum output for each snapshot per unit of p_nom for the OPF (e.g. for variable renewable generators this can change due to weather conditions and compulsory feed-in; for conventional generators it represents a minimal dispatch). Note that if comittable is False and p_min_pu &gt; 0, this represents a must-run condition.</td>
+<td>Input (optional)</td>
+</tr>
+<tr class="row-odd"><td>p_max_pu</td>
+<td>static or series</td>
+<td>per unit</td>
+<td><ol class="first last arabic simple">
+<li></li>
+</ol>
+</td>
+<td>The maximum output for each snapshot per unit of p_nom for the OPF (e.g. for varialbe renewable generators this can change due to weather conditions; for conventional generators it represents a maximum dispatch).</td>
+<td>Input (optional)</td>
+</tr>
+<tr class="row-even"><td>p_set</td>
+<td>static or series</td>
+<td>MW</td>
+<td><ol class="first last arabic simple" start="0">
+<li></li>
+</ol>
+</td>
+<td>active power set point (for PF)</td>
+<td>Input (optional)</td>
+</tr>
+<tr class="row-odd"><td>q_set</td>
+<td>static or series</td>
+<td>MVar</td>
+<td><ol class="first last arabic simple" start="0">
+<li></li>
+</ol>
+</td>
+<td>reactive power set point (for PF)</td>
+<td>Input (optional)</td>
+</tr>
+<tr class="row-even"><td>sign</td>
+<td>float</td>
+<td>n/a</td>
+<td><ol class="first last arabic simple">
+<li></li>
+</ol>
+</td>
+<td>power sign</td>
+<td>Input (optional)</td>
+</tr>
+<tr class="row-odd"><td>marginal_cost</td>
+<td>float</td>
+<td>currency/MWh</td>
+<td><ol class="first last arabic simple" start="0">
+<li></li>
+</ol>
+</td>
+<td>Marginal cost of production of 1 MWh.</td>
+<td>Input (optional)</td>
+</tr>
+<tr class="row-even"><td>capital_cost</td>
+<td>float</td>
+<td>currency/MW</td>
+<td><ol class="first last arabic simple" start="0">
+<li></li>
+</ol>
+</td>
+<td>Capital cost of extending p_nom by 1 MW.</td>
+<td>Input (optional)</td>
+</tr>
+<tr class="row-odd"><td>efficiency</td>
+<td>float</td>
+<td>per unit</td>
+<td><ol class="first last arabic simple">
+<li></li>
+</ol>
+</td>
+<td>Ratio between primary energy and electrical energy, e.g. takes value 0.4 MWh_elec/MWh_thermal for gas. This is important for determining CO2 emissions per MWh.</td>
+<td>Input (optional)</td>
+</tr>
+<tr class="row-even"><td>start_up_cost</td>
+<td>float</td>
+<td>currency</td>
+<td><ol class="first last arabic simple" start="0">
+<li></li>
+</ol>
+</td>
+<td>Cost to start up the generator. Only read if committable is True.</td>
+<td>Input (optional)</td>
+</tr>
+<tr class="row-odd"><td>shut_down_cost</td>
+<td>float</td>
+<td>currency</td>
+<td><ol class="first last arabic simple" start="0">
+<li></li>
+</ol>
+</td>
+<td>Cost to shut down the generator. Only read if committable is True.</td>
+<td>Input (optional)</td>
+</tr>
+<tr class="row-even"><td>min_up_time</td>
+<td>int</td>
+<td>snapshots</td>
+<td>0</td>
+<td>Minimum number of snapshots for status to be 1.  Only read if committable is True.</td>
+<td>Input (optional)</td>
+</tr>
+<tr class="row-odd"><td>min_down_time</td>
+<td>int</td>
+<td>snapshots</td>
+<td>0</td>
+<td>Minimum number of snapshots for status to be 0.  Only read if committable is True.</td>
+<td>Input (optional)</td>
+</tr>
+<tr class="row-even"><td>initial_status</td>
+<td>int</td>
+<td>n/a</td>
+<td>1</td>
+<td>Initial status.  Only read if committable is True.</td>
+<td>Input (optional)</td>
+</tr>
+<tr class="row-odd"><td>ramp_limit_up</td>
+<td>float</td>
+<td>per unit</td>
+<td>NaN</td>
+<td>Maximum active power increase from one snapshot to the next, per unit of the nominal power. Ignored if NaN.</td>
+<td>Input (optional)</td>
+</tr>
+<tr class="row-even"><td>ramp_limit_down</td>
+<td>float</td>
+<td>per unit</td>
+<td>NaN</td>
+<td>Maximum active power decrease from one snapshot to the next, per unit of the nominal power. Ignored if NaN.</td>
+<td>Input (optional)</td>
+</tr>
+<tr class="row-odd"><td>p</td>
+<td>series</td>
+<td>MW</td>
+<td><ol class="first last arabic simple" start="0">
+<li></li>
+</ol>
+</td>
+<td>active power at bus (positive if net generation)</td>
+<td>Output</td>
+</tr>
+<tr class="row-even"><td>q</td>
+<td>series</td>
+<td>MVar</td>
+<td><ol class="first last arabic simple" start="0">
+<li></li>
+</ol>
+</td>
+<td>reactive power (positive if net generation)</td>
+<td>Output</td>
+</tr>
+<tr class="row-odd"><td>p_nom_opt</td>
+<td>float</td>
+<td>MW</td>
+<td><ol class="first last arabic simple" start="0">
+<li></li>
+</ol>
+</td>
+<td>Optimised nominal power.</td>
+<td>Output</td>
+</tr>
+<tr class="row-even"><td>status</td>
+<td>series</td>
+<td>n/a</td>
+<td>1</td>
+<td>Status (1 is on, 0 is off). Only outputted if committable is True.</td>
+<td>Output</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="lines">
+<h3>Lines<a class="headerlink" href="#lines" title="Permalink to this headline">¶</a></h3>
+<table border="1" class="docutils">
+<colgroup>
+<col width="17%" />
+<col width="17%" />
+<col width="17%" />
+<col width="17%" />
+<col width="17%" />
+<col width="17%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">attribute</th>
+<th class="head">type</th>
+<th class="head">unit</th>
+<th class="head">default</th>
+<th class="head">description</th>
+<th class="head">status</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>name</td>
+<td>string</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>Unique name</td>
+<td>Input (required)</td>
+</tr>
+<tr class="row-odd"><td>bus0</td>
+<td>string</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>Name of first bus to which branch is attached.</td>
+<td>Input (required)</td>
+</tr>
+<tr class="row-even"><td>bus1</td>
+<td>string</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>Name of second bus to which branch is attached.</td>
+<td>Input (required)</td>
+</tr>
+<tr class="row-odd"><td>type</td>
+<td>string</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>Name of line standard type. If this is not an empty string &#8220;&#8221;, then the line standard type impedance parameters are multiplied with the line length and divided/multiplied by num_parallel to compute x, r, etc. This will override any values set in r, x, and b. If the string is empty, PyPSA will simply read r, x, etc.</td>
+<td>Input (optional)</td>
+</tr>
+<tr class="row-even"><td>x</td>
+<td>float</td>
+<td>Ohm</td>
+<td><ol class="first last arabic simple" start="0">
+<li></li>
+</ol>
+</td>
+<td>Series reactance; must be non-zero for AC branch in linear power flow. If the line has series inductance <span class="math">\(L\)</span> in Henries then <span class="math">\(x = 2\pi f L\)</span> where <span class="math">\(f\)</span> is the frequency in Hertz. Series impedance <span class="math">\(z = r + jx\)</span> must be non-zero for the non-linear power flow. Ignored if type defined.</td>
+<td>Input (required)</td>
+</tr>
+<tr class="row-odd"><td>r</td>
+<td>float</td>
+<td>Ohm</td>
+<td><ol class="first last arabic simple" start="0">
+<li></li>
+</ol>
+</td>
+<td>Series resistance; must be non-zero for DC branch in linear power flow. Series impedance <span class="math">\(z = r + jx\)</span> must be non-zero for the non-linear power flow. Ignored if type defined.</td>
+<td>Input (required)</td>
+</tr>
+<tr class="row-even"><td>g</td>
+<td>float</td>
+<td>Siemens</td>
+<td><ol class="first last arabic simple" start="0">
+<li></li>
+</ol>
+</td>
+<td>Shunt conductivity. Shunt admittance is <span class="math">\(y = g + jb\)</span>.</td>
+<td>Input (optional)</td>
+</tr>
+<tr class="row-odd"><td>b</td>
+<td>float</td>
+<td>Siemens</td>
+<td><ol class="first last arabic simple" start="0">
+<li></li>
+</ol>
+</td>
+<td>Shunt susceptance. If the line has shunt capacitance <span class="math">\(C\)</span> in Farads then <span class="math">\(b = 2\pi f C\)</span> where <span class="math">\(f\)</span> is the frequency in Hertz. Shunt admittance is <span class="math">\(y = g + jb\)</span>. Ignored if type defined.</td>
+<td>Input (optional)</td>
+</tr>
+<tr class="row-even"><td>s_nom</td>
+<td>float</td>
+<td>MVA</td>
+<td><ol class="first last arabic simple" start="0">
+<li></li>
+</ol>
+</td>
+<td>Limit of apparent power which can pass through branch.</td>
+<td>Input (optional)</td>
+</tr>
+<tr class="row-odd"><td>capital_cost</td>
+<td>float</td>
+<td>currency/MVA</td>
+<td><ol class="first last arabic simple" start="0">
+<li></li>
+</ol>
+</td>
+<td>Capital cost of extending s_nom by 1 MVA.</td>
+<td>Input (optional)</td>
+</tr>
+<tr class="row-even"><td>length</td>
+<td>float</td>
+<td>km</td>
+<td><ol class="first last arabic simple" start="0">
+<li></li>
+</ol>
+</td>
+<td>Length of line used when &#8220;type&#8221; is set, also useful for calculating the capital cost.</td>
+<td>Input (optional)</td>
+</tr>
+<tr class="row-odd"><td>terrain_factor</td>
+<td>float</td>
+<td>per unit</td>
+<td><ol class="first last arabic simple">
+<li></li>
+</ol>
+</td>
+<td>Terrain factor for increasing capital cost.</td>
+<td>Input (optional)</td>
+</tr>
+<tr class="row-even"><td>v_ang_min</td>
+<td>float</td>
+<td>Degrees</td>
+<td>-inf</td>
+<td>Minimum voltage angle difference across the line.</td>
+<td>Input (optional)</td>
+</tr>
+<tr class="row-odd"><td>v_ang_max</td>
+<td>float</td>
+<td>Degrees</td>
+<td>inf</td>
+<td>Maximum voltage angle difference across the line.</td>
+<td>Input (optional)</td>
+</tr>
+<tr class="row-even"><td>sub_network</td>
+<td>string</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>Name of connected sub-network to which lines belongs. This attribute is set by PyPSA in the function network.determine_network_topology(); do not set it directly by hand.</td>
+<td>Output</td>
+</tr>
+<tr class="row-odd"><td>p0</td>
+<td>series</td>
+<td>MW</td>
+<td><ol class="first last arabic simple" start="0">
+<li></li>
+</ol>
+</td>
+<td>Active power at bus0 (positive if branch is withdrawing power from bus0).</td>
+<td>Output</td>
+</tr>
+<tr class="row-even"><td>q0</td>
+<td>series</td>
+<td>MVar</td>
+<td><ol class="first last arabic simple" start="0">
+<li></li>
+</ol>
+</td>
+<td>Reactive power at bus0 (positive if branch is withdrawing power from bus0).</td>
+<td>Output</td>
+</tr>
+<tr class="row-odd"><td>p1</td>
+<td>series</td>
+<td>MW</td>
+<td><ol class="first last arabic simple" start="0">
+<li></li>
+</ol>
+</td>
+<td>Active power at bus1 (positive if branch is withdrawing power from bus1).</td>
+<td>Output</td>
+</tr>
+<tr class="row-even"><td>q1</td>
+<td>series</td>
+<td>MVar</td>
+<td><ol class="first last arabic simple" start="0">
+<li></li>
+</ol>
+</td>
+<td>Reactive power at bus1 (positive if branch is withdrawing power from bus1).</td>
+<td>Output</td>
+</tr>
+<tr class="row-odd"><td>x_pu</td>
+<td>float</td>
+<td>per unit</td>
+<td><ol class="first last arabic simple" start="0">
+<li></li>
+</ol>
+</td>
+<td>Per unit series reactance calculated by PyPSA from x and bus.v_nom.</td>
+<td>Output</td>
+</tr>
+<tr class="row-even"><td>r_pu</td>
+<td>float</td>
+<td>per unit</td>
+<td><ol class="first last arabic simple" start="0">
+<li></li>
+</ol>
+</td>
+<td>Per unit series resistance calculated by PyPSA from r and bus.v_nom</td>
+<td>Output</td>
+</tr>
+<tr class="row-odd"><td>g_pu</td>
+<td>float</td>
+<td>per unit</td>
+<td><ol class="first last arabic simple" start="0">
+<li></li>
+</ol>
+</td>
+<td>Per unit shunt conductivity calculated by PyPSA from g and bus.v_nom</td>
+<td>Output</td>
+</tr>
+<tr class="row-even"><td>b_pu</td>
+<td>float</td>
+<td>per unit</td>
+<td><ol class="first last arabic simple" start="0">
+<li></li>
+</ol>
+</td>
+<td>Per unit shunt susceptance calculated by PyPSA from b and bus.v_nom</td>
+<td>Output</td>
+</tr>
+<tr class="row-odd"><td>s_nom_opt</td>
+<td>float</td>
+<td>MVA</td>
+<td><ol class="first last arabic simple" start="0">
+<li></li>
+</ol>
+</td>
+<td>Optimised capacity for apparent power.</td>
+<td>Output</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="loads">
+<h3>Loads<a class="headerlink" href="#loads" title="Permalink to this headline">¶</a></h3>
+<table border="1" class="docutils">
+<colgroup>
+<col width="17%" />
+<col width="17%" />
+<col width="17%" />
+<col width="17%" />
+<col width="17%" />
+<col width="17%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">attribute</th>
+<th class="head">type</th>
+<th class="head">unit</th>
+<th class="head">default</th>
+<th class="head">description</th>
+<th class="head">status</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>name</td>
+<td>string</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>Unique name</td>
+<td>Input (required)</td>
+</tr>
+<tr class="row-odd"><td>bus</td>
+<td>string</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>Name of bus to which load is attached.</td>
+<td>Input (required)</td>
+</tr>
+<tr class="row-even"><td>type</td>
+<td>string</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>Placeholder for load type. Not yet implemented.</td>
+<td>Input (optional)</td>
+</tr>
+<tr class="row-odd"><td>p_set</td>
+<td>static or series</td>
+<td>MW</td>
+<td><ol class="first last arabic simple" start="0">
+<li></li>
+</ol>
+</td>
+<td>Active power consumption (positive if the load is consuming power).</td>
+<td>Input (optional)</td>
+</tr>
+<tr class="row-even"><td>q_set</td>
+<td>static or series</td>
+<td>MVar</td>
+<td><ol class="first last arabic simple" start="0">
+<li></li>
+</ol>
+</td>
+<td>Reactive power consumption (positive if the load is inductive).</td>
+<td>Input (optional)</td>
+</tr>
+<tr class="row-odd"><td>sign</td>
+<td>float</td>
+<td>n/a</td>
+<td>-1.</td>
+<td>power sign (opposite sign to generator)</td>
+<td>Input (optional)</td>
+</tr>
+<tr class="row-even"><td>p</td>
+<td>series</td>
+<td>MW</td>
+<td><ol class="first last arabic simple" start="0">
+<li></li>
+</ol>
+</td>
+<td>active power at bus (positive if net load)</td>
+<td>Output</td>
+</tr>
+<tr class="row-odd"><td>q</td>
+<td>series</td>
+<td>MVar</td>
+<td><ol class="first last arabic simple" start="0">
+<li></li>
+</ol>
+</td>
+<td>reactive power (positive if net load)</td>
+<td>Output</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Network model</a><ul>
+<li><a class="reference internal" href="#components">Components</a><ul>
+<li><a class="reference internal" href="#network">Network</a></li>
+<li><a class="reference internal" href="#bus">Bus</a></li>
+<li><a class="reference internal" href="#generator">Generator</a></li>
+<li><a class="reference internal" href="#lines">Lines</a></li>
+<li><a class="reference internal" href="#loads">Loads</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="simple.html" title="previous chapter">Elementary model</a></li>
+      <li>Next: <a href="standalone.html" title="next chapter">Experimental Stand alone version</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/network.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, Martyn van Dijke & Yuanlong Li .
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="_sources/network.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

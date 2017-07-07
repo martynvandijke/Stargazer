@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Explanation of front and backend</title>
+    
+    <link rel="stylesheet" href="_static/epub.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" /> 
+  </head>
+  <body role="document">
+
+    <div class="document">
+      <div class="documentwrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="explanation-of-front-and-backend">
+<h1>Explanation of front and backend</h1>
+<p>This section will dive into the intergration of the frontend and backend of the overall system.</p>
+<div class="section" id="overview">
+<h2>Overview</h2>
+<p>The figure below will provide an overview of the system hierachy, this figure also indicates how the diffrent systems (Python &amp; Node.Js) are interconnected and operate.
+Using this figure the overall structure of the web application should become clear.</p>
+<div class="align-center figure">
+<img alt="Hierachy overview" src="_images/overview.png" style="height: 600px;" />
+</div>
+</div>
+<div class="section" id="backend-pyton">
+<h2>Backend Pyton</h2>
+<p>The backend is writen in Python 3.5 and may be digisted further.
+It consist as seen in the overview of two main part&#8217;s the Django web server and the simple &amp; network case.
+The simple and network case are programmed in one &#8216;EconomicDispatcher&#8217;.</p>
+<div class="section" id="django">
+<h3>Django</h3>
+<p>Django ensure that all html request are handled well, and is a web server framework.
+Django process the html requested and handles the data transfer from the front end to the backend and vice versa.
+Django also provides the simple session based storage.
+All html request are first handled by Django, and if an action is coupled to the html request Django will initiate that action.</p>
+<div class="align-center figure">
+<img alt="Hierachy overview of django backend" src="_images/django.png" style="height: 600px;" />
+</div>
+</div>
+<div class="section" id="economicdispatcher">
+<h3>EconomicDispatcher</h3>
+<p>The inner workings of the &#8216;EconomicDispatcher&#8217; may be seen in this figure
+An more in depth look into the simple and network case is made in ..</p>
+<div class="align-center figure">
+<img alt="Hierachy overview" src="_images/EconomicDispatcher.png" style="width: 800px;" />
+</div>
+</div>
+</div>
+<div class="section" id="frontend-node-js">
+<h2>Frontend Node.Js</h2>
+<div class="align-center figure">
+<img alt="Hierachy overview" src="_images/jsoverview.png" style="width: 800px;" />
+</div>
+<div class="align-center figure">
+<img alt="Hierachy overview" src="_images/Toolbox.png" style="width: 800px;" />
+</div>
+<div class="align-center figure">
+<img alt="Hierachy overview" src="_images/Workbench.png" style="width: 800px;" />
+</div>
+</div>
+</div>
+
+
+          </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Installation</title>
+    
+    <link rel="stylesheet" href="_static/epub.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" /> 
+  </head>
+  <body role="document">
+
+    <div class="document">
+      <div class="documentwrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="installation">
+<h1>Installation</h1>
+<div class="section" id="getting-python">
+<h2>Getting Python</h2>
+<p>This web application uses python3
+To install python on a debian based linux machine simply run:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">sudo</span> <span class="n">apt</span><span class="o">-</span><span class="n">get</span> <span class="n">install</span> <span class="n">python3</span>
+</pre></div>
+</div>
+<p>it&#8217;s always helpful to use a <a class="reference external" href="https://pypi.python.org/pypi/virtualenv">virtual environment</a><span class="link-target"> [https://pypi.python.org/pypi/virtualenv]</span> for your python
+installation.</p>
+</div>
+<div class="section" id="getting-a-solver-for-linear-optimisation">
+<h2>Getting a solver for linear optimisation</h2>
+<p>The web app is known to work with the free software GLPK.
+The web application should also work using the Gurobi software (and whatever else Pyomo works with).</p>
+<p>For Debian-based systems you can get GLPK with:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">sudo</span> <span class="n">apt</span><span class="o">-</span><span class="n">get</span> <span class="n">install</span> <span class="n">glpk</span><span class="o">-</span><span class="n">utils</span>
+</pre></div>
+</div>
+<p>There are similar packages for other GNU/Linux distributions.
+For Windows there is <a class="reference external" href="http://winglpk.sourceforge.net/">WinGLPK</a><span class="link-target"> [http://winglpk.sourceforge.net/]</span>. For
+Mac OS X <a class="reference external" href="http://brew.sh/">brew</a><span class="link-target"> [http://brew.sh/]</span> is your friend.</p>
+</div>
+<div class="section" id="installing-the-backend-of-the-web-app">
+<h2>Installing the backend of the web app</h2>
+<p>If you have the Python package installed ( <code class="docutils literal"><span class="pre">pip3</span></code>)  just run:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">sudo</span> <span class="n">pip3</span> <span class="n">install</span> <span class="o">-</span><span class="n">r</span> <span class="n">requirements</span><span class="o">.</span><span class="n">txt</span>
+</pre></div>
+</div>
+<p>Please make sure to install the dependencies for Python 3, since the web application is programmed in Python 3</p>
+</div>
+<div class="section" id="backend-dependencies">
+<h2>Backend dependencies</h2>
+<p>The web application relies on the following packages which are not contained in a
+standard Python installation:</p>
+<ul class="simple">
+<li>pypsa</li>
+<li>numpy</li>
+<li>scipy</li>
+<li>pandas</li>
+<li>networkx</li>
+<li>pyomo</li>
+<li>moreitertools</li>
+<li>Django</li>
+</ul>
+<p>Using above installation technique these packages are installed.</p>
+</div>
+<div class="section" id="getting-nodejs">
+<h2>Getting Nodejs</h2>
+<p>NodeJs can be installed by going to <a href="#id1"><span class="problematic" id="id2">`NodeJs&lt;https://nodejs.org/en/download/ &gt;`_</span></a>
+To install NodeJs run</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">sudo</span> <span class="n">apt</span><span class="o">-</span><span class="n">get</span> <span class="n">install</span> <span class="n">node</span>
+</pre></div>
+</div>
+<p>Also webpack is needed wich may be installed using npm:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">sudo</span> <span class="n">npm</span> <span class="n">install</span> <span class="n">webpack</span> <span class="o">-</span><span class="n">g</span>
+</pre></div>
+</div>
+<p>After installing Node.Js and webpack run</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">npm</span> <span class="n">install</span>
+</pre></div>
+</div>
+<p>In the asset folder located in mysite/assets</p>
+<p>Also make sure to run</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">webpack</span> <span class="o">--</span><span class="n">config</span> <span class="n">webpack</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">js</span> <span class="o">--</span><span class="n">watch</span>
+</pre></div>
+</div>
+<p>In side the asset folder</p>
+</div>
+</div>
+
+
+          </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+  </body>
+</html>

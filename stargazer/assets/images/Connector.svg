@@ -1,0 +1,17 @@
+<?xml version="1.0"?><svg width="433.3333333333333" height="433.3333333333333" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+ <title>Button-Black</title>
+ <defs>
+  <linearGradient id="linearGradient1697">
+   <stop stop-color="#c6db0e" offset="0" id="stop1698"/>
+   <stop stop-color="#6a7607" offset="1" id="stop1699"/>
+  </linearGradient>
+  <linearGradient y2="0.933531" y1="0.077503" xlink:href="#linearGradient1697" x2="0.491787" x1="0.491787" id="linearGradient1077"/>
+ </defs>
+ <g>
+  <title>Layer 1</title>
+  <g id="layer1">
+   <path fill="#000000" fill-rule="nonzero" stroke="url(#linearGradient1077)" stroke-width="1.364453" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="4" stroke-dashoffset="0" id="path1070" d="m393.369537,203.394852a190.403671,190.403671 0 1 1 -380.807363,0a190.403671,190.403671 0 1 1 380.807363,0z"/>
+   <path opacity="0.9" fill="#000000" fill-rule="evenodd" stroke-width="0.25000000pt" id="path1713" d="m341.277893,153.236755c44.367188,-0.966797 -12.400146,-123.152878 -135.681015,-123.802788c-134.561523,-0.687119 -162.095947,110.961357 -140.719452,112.997215c0,0 36.864166,5.062622 71.939575,14.856079c56.472656,15.930817 125.549149,-13.069244 152.768753,-17.2836c30.342468,-4.697876 47.373413,15.392426 51.692139,13.233093z"/>
+  </g>
+ </g>
+</svg>
