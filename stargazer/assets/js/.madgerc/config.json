@@ -1,9 +1,0 @@
-{
-	"showFileExtension": true,
-	"fontSize": "10px",
-	"graphVizOptions": {
-		"G": {
-			"rankdir": "LR"
-		}
-	}
-}

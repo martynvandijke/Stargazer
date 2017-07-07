@@ -1,2 +1,0 @@
-Experimental Stand alone version
-=================================

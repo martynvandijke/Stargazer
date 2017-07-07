@@ -1,7 +1,0 @@
-digraph G {
-  "App";
-  "Solver";
-  "Store";
-  "App" -> "Solver";
-  "App" -> "Store";
-}
